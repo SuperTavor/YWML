@@ -32,7 +32,9 @@ private slots:
 
     int Compress(bool isMov,bool isSnd,bool isFa,std::string moddedRomfs);
 
-    void CreateMetadata();
+    int CreateMetadata();
+
+    void HandleError(const std::exception &ex);
 
 private:
     Ui::CreateWindow *ui;

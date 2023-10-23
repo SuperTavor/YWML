@@ -10,15 +10,18 @@ CONFIG += c++17
 
 SOURCES += \
     createwindow.cpp \
+    loadwindow.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
     createwindow.h \
+    loadwindow.h \
     mainwindow.h
 
 FORMS += \
     createwindow.ui \
+    loadwindow.ui \
     mainwindow.ui
 
 # Default rules for deployment.

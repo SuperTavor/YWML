@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <vector>
 #include <cstdio>
+
 namespace fs = std::filesystem;
 
 CreateWindow::CreateWindow(QWidget *parent) :
@@ -29,13 +30,21 @@ void CreateWindow::on_createBtn_clicked()
     QLineEdit *modVersionLineEdit = findChild<QLineEdit*>("versionLineEdit");
     QLineEdit *authorLineEdit = findChild<QLineEdit*>("authorLineEdit");
     QLineEdit *moddedRomfsLineEdit = findChild<QLineEdit*>("moddedRomfsLineEdit");
-    if (!gameComboBox->currentText().isEmpty() && !modNameLineEdit->text().isEmpty() && !modVersionLineEdit->text().isEmpty() && !authorLineEdit->text().isEmpty() && !moddedRomfsLineEdit->text().isEmpty())
+
+    if (gameComboBox && modNameLineEdit && modVersionLineEdit && authorLineEdit && moddedRomfsLineEdit &&
+        !gameComboBox->currentText().isEmpty() && !modNameLineEdit->text().isEmpty() &&
+        !modVersionLineEdit->text().isEmpty() && !authorLineEdit->text().isEmpty() &&
+        !moddedRomfsLineEdit->text().isEmpty())
     {
-        QMessageBox msg;
-        msg.setWindowTitle("All checks passed.");
-        msg.setText("Initial checks passed. Press OK to start compilation of the mod file.");
-        msg.exec();
-        CreatePatch(gameComboBox->currentText(), modNameLineEdit->text(), modVersionLineEdit->text(), authorLineEdit->text(), moddedRomfsLineEdit->text());
+        try {
+            QMessageBox msg;
+            msg.setWindowTitle("All checks passed.");
+            msg.setText("Initial checks passed. Press OK to start compilation of the mod file.");
+            msg.exec();
+            CreatePatch(gameComboBox->currentText(), modNameLineEdit->text(), modVersionLineEdit->text(), authorLineEdit->text(), moddedRomfsLineEdit->text());
+        } catch (const std::exception &ex) {
+            HandleError(ex);
+        }
     }
     else
     {
@@ -49,153 +58,107 @@ void CreateWindow::on_createBtn_clicked()
 
 void CreateWindow::CreatePatch(QString game, QString name, QString version, QString author, QString moddedRomfsPath)
 {
-    if(fs::exists("delta.bin"))
-    {
-        std::remove("delta.bin");
-    }
-    if(fs::exists("metadata.ywmd"))
-    {
-        std::remove("metadata.ywmd");
-    }
-    std::filesystem::path moddedRomfs = moddedRomfsPath.toStdString();
-    std::filesystem::path vanillaRomfs = std::getenv("APPDATA");
-    vanillaRomfs /= "Citra";
-    vanillaRomfs /= "dump";
-    vanillaRomfs /= "romfs";
-    vanillaRomfs /= "0004000000167800";
-    bool skipFaModded = false;
-    bool skipMovModded = false;
-    bool skipSndModded = false;
-    fs::path vanillaRomfsPath = vanillaRomfs.string();
-    if (!fs::exists(vanillaRomfsPath))
-    {
-        QMessageBox::critical(
-            this,
-            "Error!",
-            "You need to dump the vanilla romfs of your game. To do that, right-click on the game in Citra and click Dump ROMFS. That's it! You don't have to transfer any files, YWML will automatically grab them after you dumped them."
-            );
-        return;
-    }
-    fs::path Vanillafa = vanillaRomfsPath / "yw1_a.fa";
-    if (!fs::exists(Vanillafa))
-    {
-        QMessageBox::critical(
-            this,
-            "Error!",
-            "Invalid or corrupt vanilla romfs. FA not found. Please erase your dumped romfs and redump it."
-            );
-        return;
-    }
-    fs::path moddedFa = moddedRomfs / "yw1_a.fa";
-    fs::path moddedMov = moddedRomfs / "mov";
-    fs::path moddedSnd = moddedRomfs / "snd";
-checkIfModdedFA:
-    if (skipFaModded == false)
-    {
-        if (!fs::exists(moddedFa))
-        {
-            int choice = QMessageBox::warning(
-                this,
-                "Warning",
-                "FA file not found in the provided modded romfs. Continue?",
-                QMessageBox::Cancel | QMessageBox::Ok,
-                QMessageBox::Cancel
-                );
+    try {
+        fs::path moddedRomfs = moddedRomfsPath.toStdString();
+        fs::path vanillaRomfs = std::getenv("APPDATA");
+        vanillaRomfs /= "Citra";
+        vanillaRomfs /= "dump";
+        vanillaRomfs /= "romfs";
+        vanillaRomfs /= "0004000000167800";
+        bool skipFaModded = false;
+        bool skipMovModded = false;
+        bool skipSndModded = false;
+        fs::path vanillaRomfsPath = vanillaRomfs.string();
 
-            if (choice == QMessageBox::Ok) {
-                skipFaModded = true;
-                goto checkIfModdedFA;
-            }
-            else {
-                return;
+        if (!fs::exists(vanillaRomfsPath)) {
+            QMessageBox::critical(
+                this,
+                "Error!",
+                "You need to dump the vanilla romfs of your game. To do that, right-click on the game in Citra and click Dump ROMFS. That's it! You don't have to transfer any files, YWML will automatically grab them after you dumped them."
+                );
+            return;
+        }
+
+        fs::path Vanillafa = vanillaRomfsPath / "yw1_a.fa";
+
+        if (!fs::exists(Vanillafa)) {
+            QMessageBox::critical(
+                this,
+                "Error!",
+                "Invalid or corrupt vanilla romfs. FA not found. Please erase your dumped romfs and redump it."
+                );
+            return;
+        }
+
+        fs::path moddedFa = moddedRomfs / "yw1_a.fa";
+        fs::path moddedMov = moddedRomfs / "mov";
+        fs::path moddedSnd = moddedRomfs / "snd";
+
+    checkIfModdedFA:
+        if (skipFaModded == false) {
+            if (!fs::exists(moddedFa)) {
+                int choice = QMessageBox::warning(
+                    this,
+                    "Warning",
+                    "FA file not found in the provided modded romfs. Continue?",
+                    QMessageBox::Cancel | QMessageBox::Ok,
+                    QMessageBox::Cancel
+                    );
+
+                if (choice == QMessageBox::Ok) {
+                    skipFaModded = true;
+                    goto checkIfModdedFA;
+                } else {
+                    return;
+                }
             }
         }
-    }
-checkIfModdedMov:
-    if (skipMovModded == false)
-    {
-        if (!fs::exists(moddedMov))
-        {
-            int choice = QMessageBox::warning(
-                this,
-                "Warning",
-                "MOV folder not found in the provided modded romfs. This is not required for mods that don't replace video files. Continue?",
-                QMessageBox::Cancel | QMessageBox::Ok,
-                QMessageBox::Cancel
-                );
 
-            if (choice == QMessageBox::Ok) {
-                skipMovModded = true;
-                goto checkIfModdedMov;
-            }
-            else {
-                return;
+    checkIfModdedMov:
+        if (skipMovModded == false) {
+            if (!fs::exists(moddedMov)) {
+                int choice = QMessageBox::warning(
+                    this,
+                    "Warning",
+                    "MOV folder not found in the provided modded romfs. This is not required for mods that don't replace video files. Continue?",
+                    QMessageBox::Cancel | QMessageBox::Ok,
+                    QMessageBox::Cancel
+                    );
+
+                if (choice == QMessageBox::Ok) {
+                    skipMovModded = true;
+                    goto checkIfModdedMov;
+                } else {
+                    return;
+                }
             }
         }
-    }
-checkIfModdedSnd:
-    if (skipSndModded == false)
-    {
-        if (!fs::exists(moddedSnd))
-        {
-            int choice = QMessageBox::warning(
-                this,
-                "Warning",
-                "SND folder not found in the provided modded romfs. This is not required for mods that don't replace audio files. Continue?",
-                QMessageBox::Cancel | QMessageBox::Ok,
-                QMessageBox::Cancel
-                );
 
-            if (choice == QMessageBox::Ok) {
-                skipSndModded = true;
-                goto checkIfModdedSnd;
-            }
-            else {
-                return;
+    checkIfModdedSnd:
+        if (skipSndModded == false) {
+            if (!fs::exists(moddedSnd)) {
+                int choice = QMessageBox::warning(
+                    this,
+                    "Warning",
+                    "SND folder not found in the provided modded romfs. This is not required for mods that don't replace audio files. Continue?",
+                    QMessageBox::Cancel | QMessageBox::Ok,
+                    QMessageBox::Cancel
+                    );
+
+                if (choice == QMessageBox::Ok) {
+                    skipSndModded = true;
+                    goto checkIfModdedSnd;
+                } else {
+                    return;
+                }
             }
         }
-    }
-    try
-    {
+
         patchFa(Vanillafa.string(), moddedFa.string(), skipFaModded);
-    }
-    catch (const std::exception &ex)
-    {
-        QMessageBox msg;
-        msg.setText(QString::fromStdString(std::filesystem::current_path().string()));
-        msg.exec();
-        QMessageBox msgEx;
-        QString errorMessage = QString::fromStdString(ex.what());
-        msgEx.setText(errorMessage);
-        msgEx.exec();
-    }
-    try
-    {
         CreateMetadata();
-    }
-    catch (const std::exception &ex)
-    {
-        QMessageBox msg;
-        msg.setText(QString::fromStdString(std::filesystem::current_path().string()));
-        msg.exec();
-        QMessageBox msgEx;
-        QString errorMessage = QString::fromStdString(ex.what());
-        msgEx.setText(errorMessage);
-        msgEx.exec();
-    }
-    try
-    {
-        Compress(skipMovModded,skipSndModded,skipFaModded,moddedRomfsPath.toStdString());
-    }
-    catch (const std::exception &ex)
-    {
-        QMessageBox msg;
-        msg.setText(QString::fromStdString(std::filesystem::current_path().string()));
-        msg.exec();
-        QMessageBox msgEx;
-        QString errorMessage = QString::fromStdString(ex.what());
-        msgEx.setText(errorMessage);
-        msgEx.exec();
+        Compress(skipMovModded, skipSndModded, skipFaModded, moddedRomfsPath.toStdString());
+    } catch (const std::exception &ex) {
+        HandleError(ex);
     }
 }
 
@@ -203,30 +166,19 @@ int CreateWindow::patchFa(std::string vanillaFA, std::string moddedFA, bool isfa
 {
     if (isfa == false)
     {
-        std::filesystem::path output = "delta.bin";
+        fs::path output = "delta.bin";
         std::string outputStr = output.string();
         fs::path currentDir = fs::current_path();
         QMessageBox msg2;
-        try
-        {
+
+        try {
             createDelta(vanillaFA, moddedFA, outputStr);
-        }
-        catch (const std::exception &ex)
-        {
-            QMessageBox msg;
-            msg.setText(QString::fromStdString(std::filesystem::current_path().string()));
-            msg.exec();
-            QMessageBox msgEx;
-            QString errorMessage = QString::fromStdString(ex.what());
-            msgEx.setText(errorMessage);
-            msgEx.exec();
+        } catch (const std::exception &ex) {
+            HandleError(ex);
             return 1;
         }
     }
-    else
-    {
-        return 0;
-    }
+    return 0;
 }
 
 void CreateWindow::on_browseBtn_clicked()
@@ -239,6 +191,7 @@ void CreateWindow::on_browseBtn_clicked()
 void CreateWindow::applyDelta(const std::string oldFile, const std::string patchFile, const std::string newFile)
 {
     std::string command = "xdelta.exe -e -s " + oldFile + " " + newFile + " " + patchFile;
+
     std::system(command.c_str());
 }
 
@@ -289,17 +242,21 @@ int CreateWindow::Compress(bool isMov, bool isSnd, bool isFa, std::string modded
     {
         command += ", \"snd\"";
     }
+
     if (!isFa)
     {
         command += ", \"delta.bin\"";
     }
+
     command += " -DestinationPath \"mod.zip\" -Force";
-    print(command);
+
     int rs = system(command.c_str());
+
     if(rs != 0)
     {
         return 1;
     }
+
     std::rename("mod.zip", "mod.ywm");
     QString targetFilePath = QFileDialog::getSaveFileName(nullptr, "Save Mod File As", "", "Yo-kai Watch Mod Files (*.ywm)");
 
@@ -315,8 +272,7 @@ int CreateWindow::Compress(bool isMov, bool isSnd, bool isFa, std::string modded
     }
 }
 
-
-void CreateWindow::CreateMetadata()
+int CreateWindow::CreateMetadata()
 {
     try
     {
@@ -329,16 +285,22 @@ void CreateWindow::CreateMetadata()
         outfile << modver << std::endl;
         outfile.close();
         print("Compilation step 2 complete.");
+        return 0;
     }
     catch (const std::exception &ex)
     {
-        QMessageBox msg;
-        msg.setText(QString::fromStdString(std::filesystem::current_path().string()));
-        msg.exec();
-        QMessageBox msgEx;
-        QString errorMessage = QString::fromStdString(ex.what());
-        msgEx.setText(errorMessage);
-        msgEx.exec();
-        return;
+        HandleError(ex);
+        return 1;
     }
+}
+
+void CreateWindow::HandleError(const std::exception &ex)
+{
+    QMessageBox msg;
+    msg.setText(QString::fromStdString(fs::current_path().string()));
+    msg.exec();
+    QMessageBox msgEx;
+    QString errorMessage = QString::fromStdString(ex.what());
+    msgEx.setText(errorMessage);
+    msgEx.exec();
 }

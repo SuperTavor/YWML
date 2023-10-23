@@ -29,6 +29,5 @@ void MainWindow::on_createBtn_clicked()
     CreateWindow *wdg = new CreateWindow();
     wdg->setWindowFlags(Qt::Dialog | Qt::MSWindowsFixedSizeDialogHint);
     wdg->show();
-    this->hide();
 }
 

@@ -11,13 +11,11 @@ CONFIG += c++17
 SOURCES += \
     createwindow.cpp \
     main.cpp \
-    mainwindow.cpp \
-    xdeltamanager.cpp
+    mainwindow.cpp
 
 HEADERS += \
     createwindow.h \
-    mainwindow.h \
-    xdeltamanager.h
+    mainwindow.h
 
 FORMS += \
     createwindow.ui \
@@ -27,3 +25,4 @@ FORMS += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+

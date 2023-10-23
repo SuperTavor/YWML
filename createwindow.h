@@ -1,8 +1,8 @@
 #ifndef CREATEWINDOW_H
 #define CREATEWINDOW_H
-
+#include <filesystem>
 #include <QMainWindow>
-
+namespace fs = std::filesystem;
 namespace Ui {
 class CreateWindow;
 }
@@ -21,6 +21,18 @@ private slots:
     void on_browseBtn_clicked();
 
     void CreatePatch(QString game,QString name,QString version,QString author,QString moddedRomfsPath);
+
+    int patchFa(std::string vanillaFA,std::string moddedFA,bool isfa);
+
+    void createDelta(std::string oldFile,std::string newFile, std::string patchFile);
+
+    void applyDelta(const std::string oldFile, const std::string patchFile, const std::string newFile);
+
+    void print(std::string content);
+
+    void Compress(bool isMov,bool isSnd,bool isFa);
+
+    void CreateMetadata();
 
 private:
     Ui::CreateWindow *ui;

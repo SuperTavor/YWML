@@ -30,7 +30,7 @@ private slots:
 
     void print(std::string content);
 
-    void Compress(bool isMov,bool isSnd,bool isFa);
+    int Compress(bool isMov,bool isSnd,bool isFa,std::string moddedRomfs);
 
     void CreateMetadata();
 

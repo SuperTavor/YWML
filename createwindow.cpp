@@ -6,6 +6,8 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <filesystem>
+#include <vector>
+#include <cstdio>
 namespace fs = std::filesystem;
 
 CreateWindow::CreateWindow(QWidget *parent) :
@@ -14,7 +16,6 @@ CreateWindow::CreateWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 }
-
 
 CreateWindow::~CreateWindow()
 {
@@ -118,7 +119,7 @@ checkIfModdedMov:
             int choice = QMessageBox::warning(
                 this,
                 "Warning",
-                "MOV folder not found in the provided modded romfs. This is not required for mods that don't replace video files.Continue?",
+                "MOV folder not found in the provided modded romfs. This is not required for mods that don't replace video files. Continue?",
                 QMessageBox::Cancel | QMessageBox::Ok,
                 QMessageBox::Cancel
                 );
@@ -156,7 +157,7 @@ checkIfModdedSnd:
     }
     try
     {
-        patchFa(Vanillafa.string(), moddedFa.string(),skipFaModded);
+        patchFa(Vanillafa.string(), moddedFa.string(), skipFaModded);
     }
     catch (const std::exception &ex)
     {
@@ -182,11 +183,25 @@ checkIfModdedSnd:
         msgEx.setText(errorMessage);
         msgEx.exec();
     }
+    try
+    {
+        Compress(skipMovModded,skipSndModded,skipFaModded,moddedRomfsPath.toStdString());
+    }
+    catch (const std::exception &ex)
+    {
+        QMessageBox msg;
+        msg.setText(QString::fromStdString(std::filesystem::current_path().string()));
+        msg.exec();
+        QMessageBox msgEx;
+        QString errorMessage = QString::fromStdString(ex.what());
+        msgEx.setText(errorMessage);
+        msgEx.exec();
+    }
 }
 
 int CreateWindow::patchFa(std::string vanillaFA, std::string moddedFA, bool isfa)
 {
-    if(isfa == false)
+    if (isfa == false)
     {
         std::filesystem::path output = "delta.bin";
         std::string outputStr = output.string();
@@ -233,7 +248,7 @@ void CreateWindow::createDelta(std::string oldFile, std::string newFile, std::st
 
     FILE* pipe = popen(command.c_str(), "r");
     if (pipe == nullptr) {
-        print("Errorc creating patch file.");
+        print("Error creating patch file.");
         return;
     }
 
@@ -253,41 +268,77 @@ void CreateWindow::createDelta(std::string oldFile, std::string newFile, std::st
         print("Error output:\n" + output);
     }
 }
+
 void CreateWindow::print(std::string content)
 {
-        QMessageBox msg;
-        msg.setText(QString::fromStdString(content));
-        msg.exec();
+    QMessageBox msg;
+    msg.setText(QString::fromStdString(content));
+    msg.exec();
 }
-void CreateWindow::Compress(bool isMov,bool isSnd,bool isFa)
-{
 
+int CreateWindow::Compress(bool isMov, bool isSnd, bool isFa, std::string moddedRomfs)
+{
+    std::string command = "powershell -Command Compress-Archive -Path \"metadata.ywmd\"";
+
+    if (!isMov)
+    {
+        command += ", \"/mov\"";
+    }
+
+    if (!isSnd)
+    {
+        command += ", \"snd\"";
+    }
+    if (!isFa)
+    {
+        command += ", \"delta.bin\"";
+    }
+    command += " -DestinationPath \"mod.zip\" -Force";
+    print(command);
+    int rs = system(command.c_str());
+    if(rs != 0)
+    {
+        return 1;
+    }
+    std::rename("mod.zip", "mod.ywm");
+    QString targetFilePath = QFileDialog::getSaveFileName(nullptr, "Save Mod File As", "", "Yo-kai Watch Mod Files (*.ywm)");
+
+    QString sourceFilePath = "mod.ywm";
+
+    if (QFile::copy(sourceFilePath, targetFilePath)) {
+        QFile::remove(sourceFilePath);
+        print("File saved! Enjoy :)");
+        return 0;
+    } else {
+        print("Couldn't move the file. Please try again.");
+        return 1;
+    }
 }
+
+
 void CreateWindow::CreateMetadata()
 {
-        try
-        {
-            std::string modname = ui->modNameLineEdit->text().toStdString();
-            std::string author = ui->authorLineEdit->text().toStdString();
-            std::string modver = ui->versionLineEdit->text().toStdString();
-            std::ofstream outfile ("metadata.ywmd");
-            outfile << modname << std::endl;
-            outfile << author << std::endl;
-            outfile << modver << std::endl;
-            outfile.close();
-            print("Compilation step 2 complete.");
-        }
-        catch (const std::exception &ex)
-        {
-            QMessageBox msg;
-            msg.setText(QString::fromStdString(std::filesystem::current_path().string()));
-            msg.exec();
-            QMessageBox msgEx;
-            QString errorMessage = QString::fromStdString(ex.what());
-            msgEx.setText(errorMessage);
-            msgEx.exec();
-            return;
-        }
-
-
+    try
+    {
+        std::string modname = ui->modNameLineEdit->text().toStdString();
+        std::string author = ui->authorLineEdit->text().toStdString();
+        std::string modver = ui->versionLineEdit->text().toStdString();
+        std::ofstream outfile("metadata.ywmd");
+        outfile << modname << std::endl;
+        outfile << author << std::endl;
+        outfile << modver << std::endl;
+        outfile.close();
+        print("Compilation step 2 complete.");
+    }
+    catch (const std::exception &ex)
+    {
+        QMessageBox msg;
+        msg.setText(QString::fromStdString(std::filesystem::current_path().string()));
+        msg.exec();
+        QMessageBox msgEx;
+        QString errorMessage = QString::fromStdString(ex.what());
+        msgEx.setText(errorMessage);
+        msgEx.exec();
+        return;
+    }
 }

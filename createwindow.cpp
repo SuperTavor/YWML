@@ -188,12 +188,6 @@ void CreateWindow::on_browseBtn_clicked()
     moddedRomfsPath->setText(directoryPath);
 }
 
-void CreateWindow::applyDelta(const std::string oldFile, const std::string patchFile, const std::string newFile)
-{
-    std::string command = "xdelta.exe -e -s " + oldFile + " " + newFile + " " + patchFile;
-
-    std::system(command.c_str());
-}
 
 void CreateWindow::createDelta(std::string oldFile, std::string newFile, std::string patchFile)
 {

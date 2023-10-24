@@ -14,7 +14,11 @@ class loadWindow : public QMainWindow
 public:
     explicit loadWindow(QWidget *parent = nullptr);
     ~loadWindow();
+    void applyDelta(const std::string oldFile, const std::string patchFile, const std::string newFile);
 
+    void HandleError(const std::exception &ex);
+
+    void print(std::string content);
 private:
     Ui::loadWindow *ui;
 };

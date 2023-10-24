@@ -26,8 +26,6 @@ private slots:
 
     void createDelta(std::string oldFile,std::string newFile, std::string patchFile);
 
-    void applyDelta(const std::string oldFile, const std::string patchFile, const std::string newFile);
-
     void print(std::string content);
 
     int Compress(bool isMov,bool isSnd,bool isFa,std::string moddedRomfs);

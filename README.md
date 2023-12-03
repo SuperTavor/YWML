@@ -1,13 +1,12 @@
 # YWML
 An efficient mod loader for Yo-kai Watch written in C#.
 
+## Supported games:
+###  Yo-kai Watch 1 (Europe) For 3DS
+### More will be added in the near future.
+
 ## Limitations
-The mod loader currently only supports YKW1 Europe. More regions and games will be added in the very near future.
-
-Adding multiple, non conflicting mods is currently not possible, but it will be in the near future.
-
-Music and video mods are not currently supported. if you have them in your modded romfs, they will be simply ignored.
-
+Music and Video mods are not supported currently, they will simply be ignored by the packer. Will fix asap
 ## Usage
 to pack a modded romfs in the YWML format, run
 

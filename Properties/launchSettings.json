@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "ywml_console": {
+      "commandName": "Project",
+      "commandLineArgs": "create test i"
+    }
+  }
+}

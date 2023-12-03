@@ -1,0 +1,15 @@
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\bin\Release\net7.0\win-x86\ywml_console.exe
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\bin\Release\net7.0\win-x86\ywml_console.deps.json
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\bin\Release\net7.0\win-x86\ywml_console.runtimeconfig.json
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\bin\Release\net7.0\win-x86\ywml_console.dll
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\bin\Release\net7.0\win-x86\ywml_console.pdb
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ywml_console.csproj.AssemblyReference.cache
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ywml_console.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ywml_console.AssemblyInfoInputs.cache
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ywml_console.AssemblyInfo.cs
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ywml_console.csproj.CoreCompileInputs.cache
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ywml_console.dll
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\refint\ywml_console.dll
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ywml_console.pdb
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ywml_console.genruntimeconfig.cache
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\obj\Release\net7.0\win-x86\ref\ywml_console.dll

@@ -1,0 +1,2 @@
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\bin\Release\net7.0\publish\win-x86\ywml_console.pdb
+C:\Users\yehon\Downloads\New folder (68)\ywml_console\bin\Release\net7.0\publish\win-x86\ywml_console.exe

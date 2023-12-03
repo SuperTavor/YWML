@@ -2,7 +2,7 @@
 An efficient mod loader for Yo-kai Watch written in C#.
 
 ## Supported games:
-###  Yo-kai Watch 1 (Europe) For 3DS
+* Yo-kai Watch 1 (Europe) For 3DS
 ### More will be added in the near future.
 
 ## Limitations

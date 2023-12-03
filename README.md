@@ -6,6 +6,8 @@ The mod loader currently only supports YKW1 Europe. More regions and games will 
 
 Adding multiple, non conflicting mods is currently not possible, but it will be in the near future.
 
+Music and video mods are not currently supported. if you have them in your modded romfs, they will be simply ignored.
+
 ## Usage
 to pack a modded romfs in the YWML format, run
 

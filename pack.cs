@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
 namespace ywml_console
 {
     public class pack
@@ -68,6 +63,13 @@ namespace ywml_console
 
                 Directory.Delete("build");
             }
+            foreach (string dir in Directory.GetDirectories(args[1]))
+            {
+                if (!dir.Contains("yw1_a.fa"))
+                {
+                    CopyDirectory(dir, "build");
+                }
+            }
             Console.WriteLine("Finished packing mod");
         }
         public void CreateMetadata(string modName,string modVer, string author)
@@ -111,6 +113,29 @@ namespace ywml_console
             else
             {
                 return false;
+            }
+        }
+        static void CopyDirectory(string sourceDir, string destDir)
+        {
+            if (!Directory.Exists(destDir))
+            {
+                Directory.CreateDirectory(destDir);
+            }
+
+            string[] files = Directory.GetFiles(sourceDir);
+
+            foreach (string file in files)
+            {
+                string destFile = Path.Combine(destDir, Path.GetFileName(file));
+                File.Copy(file, destFile, true); 
+            }
+
+            string[] subdirectories = Directory.GetDirectories(sourceDir);
+
+            foreach (string subdir in subdirectories)
+            {
+                string destSubDir = Path.Combine(destDir, Path.GetFileName(subdir));
+                CopyDirectory(subdir, destSubDir);
             }
         }
     }

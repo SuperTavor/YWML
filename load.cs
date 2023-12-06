@@ -48,34 +48,31 @@ namespace ywml_console
         }
         public void Unpatch(string filename)
         {
-            System.IO.Compression.ZipFile.ExtractToDirectory(filename, "build", true);
+            ZipFile.ExtractToDirectory(filename, "build", true);
+            string command = $"diff.dll -f -d -s {pathToVanillaFa} build\\delta.bin {citraModFolder + "\\yw1_a.fa"}";
+            //Console.WriteLine(command);
 
-            try
+            System.Diagnostics.Process process = new System.Diagnostics.Process
             {
-                System.Diagnostics.Process process = new System.Diagnostics.Process
+                StartInfo = new System.Diagnostics.ProcessStartInfo
                 {
-                    StartInfo = new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = "diff.dll",
-                        Arguments = $"-f -d -s {citraModFolder + "\\yw1_a.fa"} build\\delta.bin {citraModFolder + "\\yw1_a.fa"}",
-                        CreateNoWindow = true,
-                        UseShellExecute = false,
-                    }
-                };
+                    FileName = "cmd",
+                    Arguments = $"/c {command}",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                }
+            };
 
-                process.Start();
-                process.WaitForExit();
-                Console.WriteLine($"diff.dll -f -d -s {pathToVanillaFa} build\\delta.bin {citraModFolder + "\\yw1_a.fa"}");
-            }
-            
-            catch (System.ComponentModel.Win32Exception ex)
-            {
-                Console.WriteLine($"Error starting the process: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"An unexpected error occurred: {ex.Message}");
-            }
+            process.OutputDataReceived += (sender, e) => Console.WriteLine(e.Data);
+
+            process.Start();
+            process.BeginOutputReadLine();
+            process.WaitForExit();
+
+
+
             if (Directory.Exists("build"))
             {
                 foreach (string filePath in Directory.GetFiles("build"))
@@ -99,7 +96,7 @@ namespace ywml_console
             {
                 sb.Append(file + "|");
             }
-            if(sb.ToString() != "delta.bin|metadata.ywmd|")
+            if(!sb.ToString().Contains("delta.bin|metadata.ywmd|"))
             {
                 return false;
             }

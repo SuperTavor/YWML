@@ -1,0 +1,23 @@
+[
+    {
+        "Name": "Yo-kai Watch 2 Psychic Specters (PAL, EN)",
+        "Id": "yw2_ps_pal_engb",
+        "FileSize": 81,
+        "Link": "https://www.dropbox.com/scl/fi/ixj9k938slxdxtjl5gbsd/yw2pseurengb.7z?rlkey=4gqanmx1y7ykum3ywhnia4i9u&st=y5nnwf0i&dl=1",
+        "OgFAName": "yw2_lg_engb.fa"
+    },
+    {
+        "Name": "Yo-kai Watch Blasters MRC (PAL/USA, EN)",
+        "Id": "ywb_merged_en",
+        "FileSize": 115,
+        "Link": "https://www.dropbox.com/scl/fi/qz6tnat5h0c6qno8jydet/ywb1mergeden.7z?rlkey=odt63q055m0lj7iung30hpxg1&st=uitahao2&dl=1",
+        "OgFAName": "ywb_lg_en.fa"
+    },
+    {
+        "Name": "Yo-kai Watch 3 (PAL/USA,EN)",
+        "Id": "yw3_en",
+        "FileSize": 119,
+        "Link": "https://www.dropbox.com/scl/fi/cfils0ykhu692qqg3l28s/yw3_en.7z?rlkey=yyd7sa5buut3pdwz4emeuhkld&st=7wjf4cfk&dl=1",
+        "OgFAName": "yw_lg_en.fa"
+    }
+]

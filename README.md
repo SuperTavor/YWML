@@ -42,5 +42,26 @@ In YWML, extensions can dynamically add support for specific games! To download 
 
 ![The extension library window](https://i.imgur.com/5UMZXN8.png)
 
+## How can I install a mod?
+First, download the appropriate extension from the extension library
+
+![The extension library window](https://i.imgur.com/5UMZXN8.png)
+
+After that, in the main menu, click "Load" and choose the appropriate target game (should be from an extension you downloaded)
+
+![TargetGame](https://i.imgur.com/qYaT25q.png)
+
+Then, select your mod folder. on Citra, you can get it by right clicking your game -> open mods directory, then creating a `romfs` folder inside and selecting that folder. On 3DS, put the SD card into your computer, and navigate to `luma/titles/[your_title_id]/romfs`. You can get the appropriate title ID for your game [here](https://3dsdb.com/). Create any folders that don't exist to get to that path, and make sure you have game patching enabled.
+
+Now, in your mod loading window, click "Add mod" and select your mod like so:
+
+![mod](https://i.imgur.com/ca9EuZK.png)
+
+Now, click "Install selected mods"! This will install all of the mods in the list.
+
+![mod](https://i.imgur.com/OoTnOET.png)
+
+You're done! Enjoy.
+
 
 ### Happy mod loading!

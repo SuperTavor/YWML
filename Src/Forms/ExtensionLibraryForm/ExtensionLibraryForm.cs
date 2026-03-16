@@ -27,22 +27,32 @@ namespace YWML.Src.Forms
             {
                 this.Close();
             }
-
-
-            foreach (var ext in _lib.Extensions!)
+            //add category nodes
+            foreach(var cat in _lib.ExtensionInfo.ExtensionCategories)
+            {
+                extensionsTreeView.Nodes.Add(cat,cat);
+            }
+            //add extension nodes to category nodes
+            foreach (var ext in _lib.ExtensionInfo.ExtensionList)
             {
                 var toAdd = $"{ext.Name} ({ext.FileSize} MiB)";
                 if (_lib.InstalledList.ContainsKey(ext.Id))
                 {
                     toAdd += " (Installed)";
                 }
-                extensionsTreeView.Nodes.Add(toAdd);
+                foreach(var cat in _lib.ExtensionInfo.ExtensionCategories)
+                {
+                    if(ext.Name.Contains(cat))
+                    {
+                        extensionsTreeView.Nodes[cat].Nodes.Add(toAdd);
+                    }
+                }
             }
         }
 
         private async void installBtn_Click(object sender, EventArgs e)
         {
-            await _lib.Extensions![extensionsTreeView.SelectedNode.Index].InstallAsync([exitBtn, installBtn,uninstallBtn], statusLabel, percentageLabel, _lib.InstalledList);
+            await _lib.ExtensionInfo.ExtensionList.Find(ext => extensionsTreeView.SelectedNode.Text.Contains(ext.Name)).InstallAsync([exitBtn, installBtn,uninstallBtn], statusLabel, percentageLabel, _lib.InstalledList);
             extensionsTreeView.SelectedNode.Text += " (Installed)";
             installBtn.Enabled = false;
             uninstallBtn.Enabled = true;
@@ -60,6 +70,16 @@ namespace YWML.Src.Forms
 
         private void extensionsTreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
+            //check that selected node is not a category node
+            foreach (var cat in _lib.ExtensionInfo.ExtensionCategories)
+            {
+                if (e.Node.Text == cat)
+                {
+                    uninstallBtn.Enabled = false;
+                    installBtn.Enabled = false;
+                    return;
+                }
+            }
             if (extensionsTreeView.SelectedNode.Text.Contains("Installed"))
             {
                 uninstallBtn.Enabled = true;
@@ -75,7 +95,7 @@ namespace YWML.Src.Forms
         private async void uninstallBtn_Click(object sender, EventArgs e)
         {
             percentageLabel.Text = string.Empty;
-            await _lib.Extensions![extensionsTreeView.SelectedNode.Index].UninstallAsync([exitBtn, installBtn, uninstallBtn], statusLabel, _lib.InstalledList);
+            await _lib.ExtensionInfo.ExtensionList.Find(ext => extensionsTreeView.SelectedNode.Text.Contains(ext.Name)).UninstallAsync([exitBtn, installBtn, uninstallBtn], statusLabel, _lib.InstalledList);
             extensionsTreeView.SelectedNode.Text = extensionsTreeView.SelectedNode.Text.Substring(0, extensionsTreeView.SelectedNode.Text.Length - " (Installed)".Length);
             installBtn.Enabled = true;
             uninstallBtn.Enabled = false;

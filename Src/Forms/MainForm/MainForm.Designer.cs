@@ -28,10 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             button2 = new Button();
             extLibBtn = new Button();
             ywmlLabel = new Label();
             verLabel = new Label();
+            configOpenBtn = new Button();
+            button1 = new Button();
             SuspendLayout();
             // 
             // button2
@@ -72,23 +75,48 @@
             verLabel.AutoSize = true;
             verLabel.Font = new Font("Consolas", 11.25F, FontStyle.Italic, GraphicsUnit.Point, 0);
             verLabel.ForeColor = SystemColors.ActiveCaptionText;
-            verLabel.Location = new Point(12, 184);
+            verLabel.Location = new Point(12, 267);
             verLabel.Name = "verLabel";
             verLabel.Size = new Size(32, 18);
             verLabel.TabIndex = 6;
             verLabel.Text = "ver";
+            // 
+            // configOpenBtn
+            // 
+            configOpenBtn.Font = new Font("Yu Gothic UI Semibold", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            configOpenBtn.Location = new Point(97, 196);
+            configOpenBtn.Name = "configOpenBtn";
+            configOpenBtn.Size = new Size(167, 30);
+            configOpenBtn.TabIndex = 7;
+            configOpenBtn.Text = "Locate config file";
+            configOpenBtn.UseVisualStyleBackColor = true;
+            configOpenBtn.Click += configOpenBtn_Click;
+            // 
+            // button1
+            // 
+            button1.Font = new Font("Yu Gothic UI Semibold", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            button1.Location = new Point(97, 232);
+            button1.Name = "button1";
+            button1.Size = new Size(167, 30);
+            button1.TabIndex = 8;
+            button1.Text = "Migrate old mod";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.ButtonHighlight;
-            ClientSize = new Size(361, 211);
+            ClientSize = new Size(361, 294);
+            Controls.Add(button1);
+            Controls.Add(configOpenBtn);
             Controls.Add(verLabel);
             Controls.Add(ywmlLabel);
             Controls.Add(extLibBtn);
             Controls.Add(button2);
             FormBorderStyle = FormBorderStyle.FixedSingle;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             MaximizeBox = false;
             Name = "MainForm";
             Text = "YWML";
@@ -101,5 +129,7 @@
         private Button extLibBtn;
         private Label ywmlLabel;
         private Label verLabel;
+        private Button configOpenBtn;
+        private Button button1;
     }
 }

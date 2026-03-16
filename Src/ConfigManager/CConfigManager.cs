@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Reflection;
+﻿using System.Reflection;
 using Tomlet;
 using YWML.Src.ConfigManager.DataClasses;
 using YWML.Src.Utils.GeneralUtils;
@@ -9,23 +8,42 @@ namespace YWML.Src.ConfigManager
     public static class CConfigManager
     {
         public static SConfigStructure Cfg;
-        private static Dictionary<string, string> _extensionLibrary;
+
+        private static string ReadInitialConfigFile()
+        {
+            string resourceName = "YWML.config.toml";
+
+            var assembly = Assembly.GetExecutingAssembly();
+            using Stream stream = assembly.GetManifestResourceStream(resourceName);
+            using StreamReader reader = new StreamReader(stream);
+            return reader.ReadToEnd();
+        }
         public static void Initialize()
         {
             //Deserialize 
-            if (!File.Exists(CGeneralUtils.ConfigFilePath))
+            if (!File.Exists(CGeneralUtils.WritableConfigPath))
             {
-                MessageBox.Show("config.toml file not found. Either make one or reinstall the application for a default one to appear.");
-                Environment.Exit(1);
+                Cfg = TomletMain.To<SConfigStructure>(ReadInitialConfigFile());
             }
-            Cfg = TomletMain.To<SConfigStructure>(File.ReadAllText(CGeneralUtils.ConfigFilePath));
+            else Cfg = TomletMain.To<SConfigStructure>(File.ReadAllText(CGeneralUtils.WritableConfigPath));
 
             if (Cfg.ExtensionLibraryURL == null || Cfg.ExtensionLibraryURL == "")
             {
-                MessageBox.Show("Invalid config.toml structure. Either make a new one or reinstall the application for a default one to appear.");
+                MessageBox.Show("Cannot find the extension library source URL in config.toml. Please reinstall the application or add your own source URL for custom extensions.");
                 Environment.Exit(1);
             }
 
+            if(!(Cfg.IsUpdateFirstBoot is bool))
+            {
+                MessageBox.Show("The IsUpdateFirstBoot variable in the config is corrupted. Please reinstall the app");
+                Environment.Exit(1);
+            }
+        }
+
+        public static void UpdateConfig()
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(CGeneralUtils.WritableConfigPath));
+            File.WriteAllText(CGeneralUtils.WritableConfigPath, TomletMain.TomlStringFrom(Cfg));
         }
 
     }

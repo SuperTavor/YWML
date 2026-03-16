@@ -1,6 +1,5 @@
-# ⭐YWML⭐
+![logo](https://i.imgur.com/8KkfMAj.png)
 
-![YWML's main window.](https://i.imgur.com/YA4f0rP.png)
 
 **YWML** is an easy, fun and efficient mod loader for the Yo-kai Watch series on 3DS!
 

@@ -7,14 +7,9 @@ namespace YWML.Src.ExtensionLibrary
 {
     public class CExtensionLibrary
     {
-        public struct SExtensionLibraryItem
-        {
-            public string FAName { get; set; }
-            public string Name { get; set; }
-        }
-        public List<CExtension>? Extensions;
+        public CExtensionLibInfo ExtensionInfo = new();
         //string is id
-        public Dictionary<string, SExtensionLibraryItem> InstalledList = new();
+        public Dictionary<string, CExtensionLibraryItem> InstalledList = new();
 
         public void LoadInstalledList()
         {
@@ -28,7 +23,7 @@ namespace YWML.Src.ExtensionLibrary
             {
                 try
                 {
-                    InstalledList = JsonConvert.DeserializeObject<Dictionary<string, SExtensionLibraryItem>>(installedListJson)!;
+                    InstalledList = JsonConvert.DeserializeObject<Dictionary<string, CExtensionLibraryItem>>(installedListJson)!;
                 }
                 catch
                 {
@@ -83,8 +78,7 @@ namespace YWML.Src.ExtensionLibrary
             {
                 extensionLibraryJson = File.ReadAllText(cachePath);
             }
-
-            Extensions = JsonConvert.DeserializeObject<List<CExtension>>(extensionLibraryJson);
+            ExtensionInfo = JsonConvert.DeserializeObject<CExtensionLibInfo>(extensionLibraryJson);
         }
     }
 }

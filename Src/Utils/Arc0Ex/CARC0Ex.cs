@@ -5,10 +5,9 @@ namespace YWML.Src.Utils.Arc0Ex
 {
     public class CARC0Ex : ARC0
     {
-        public CARC0Ex(FileStream fs)
+        public CARC0Ex(Stream stream) : base(stream) 
         {
-            this.BaseStream = fs;
-            this.Directory = this.Open();
+
         }
         public void AddOrReplace(string filePath, byte[] data)
         {

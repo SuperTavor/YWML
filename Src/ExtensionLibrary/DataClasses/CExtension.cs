@@ -12,10 +12,14 @@ namespace YWML.Src.ExtensionLibrary.DataClasses
         //Download link for the LZMA extension 
         public string Link { get; set; }
         public string Id { get; set; }
+
+        //Title ID used on the console for the game to generate the mod folder
+        public string TitleId { get; set; }
+
         //Original FA name
         public string OgFAName { get; set;  }
 
-        public async Task UninstallAsync(List<Button> btnsToLock,Label statusLabel,Dictionary<string,SExtensionLibraryItem> installedList)
+        public async Task UninstallAsync(List<Button> btnsToLock,Label statusLabel,Dictionary<string,CExtensionLibraryItem> installedList)
         {
             foreach (var button in btnsToLock)
             {
@@ -30,7 +34,7 @@ namespace YWML.Src.ExtensionLibrary.DataClasses
                 button.Enabled = true;
             }
         }
-        public async Task InstallAsync(List<Button> btnsToLock, Label statusLabel,Label percentageLabel,Dictionary<string, SExtensionLibraryItem> installedList)
+        public async Task InstallAsync(List<Button> btnsToLock, Label statusLabel,Label percentageLabel,Dictionary<string, CExtensionLibraryItem> installedList)
         {
             foreach(var button in btnsToLock)
             {
@@ -58,7 +62,8 @@ namespace YWML.Src.ExtensionLibrary.DataClasses
                 installedList[this.Id] = new()
                 {
                    FAName= this.OgFAName,
-                   Name = this.Name
+                   Name = this.Name,
+                   TitleId = this.TitleId
                 };
             }
             

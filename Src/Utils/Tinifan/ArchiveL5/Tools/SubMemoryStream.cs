@@ -70,9 +70,15 @@ namespace YWML.Src.Utils.Tinifan.ArchiveL5.Tools
                 return;
             }
 
-            if (!BaseStream.CanRead)
+            if (BaseStream == null || !BaseStream.CanRead)
             {
-                throw new InvalidOperationException("SubMemoryStream n'est pas lisible.");
+                if (ByteContent != null)
+                {
+                    destination.Write(ByteContent, 0, ByteContent.Length);
+                    return;
+                }
+
+                throw new InvalidOperationException("SubMemoryStream is not readable.");
             }
 
             if (ByteContent == null || ByteContent.Length == 0)

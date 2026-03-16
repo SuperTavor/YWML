@@ -6,13 +6,36 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>ywmlLogo.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="config.toml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ywmlLogo.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="config.toml" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="LZMA-CSWrapper" Version="19.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Samboy063.Tomlet" Version="5.4.0" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Src\Forms\MigrateModForm\MigrateModForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Src\FAMerger\DataClasses\" />
   </ItemGroup>
 
 </Project>

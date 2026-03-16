@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using YWML.Src.ExtensionLibrary.DataClasses;
 
 namespace YWML.Src.ConfigManager.DataClasses
 {
@@ -10,6 +6,7 @@ namespace YWML.Src.ConfigManager.DataClasses
     {
         public string ExtensionLibraryURL { get; set; } 
 
+        public bool IsUpdateFirstBoot { get; set; }
         public SConfigStructure()
         {
 

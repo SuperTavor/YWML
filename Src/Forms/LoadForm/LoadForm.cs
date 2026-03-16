@@ -3,6 +3,7 @@ using YWML.Src.Utils.GeneralUtils;
 using YWML.Src.ExtensionLibrary;
 using YWML.Src.Loader.DataClasses;
 using YWML.Src.Loader;
+using YWML.Src.ExtensionLibrary.DataClasses;
 
 namespace YWML.Src.Forms.LoadForm
 {
@@ -15,6 +16,7 @@ namespace YWML.Src.Forms.LoadForm
         public LoadForm()
         {
             InitializeComponent();
+            platComboBox.DataSource = Enum.GetValues(typeof(SPlatform));
             _lib = new CExtensionLibrary();
             _lib.LoadInstalledList();
             modsTreeView.ShowNodeToolTips = true;
@@ -41,7 +43,20 @@ namespace YWML.Src.Forms.LoadForm
             var defaultInstallDirsJson = JsonConvert.SerializeObject(_defaultInstallDirs);
             File.WriteAllText(CGeneralUtils.DefaultInstallationDirectoriesPath, defaultInstallDirsJson);
         }
-
+        private string? ChooseFolder(string desc)
+        {
+            var fbd = new FolderBrowserDialog();
+            fbd.UseDescriptionForTitle = true;
+            fbd.Description = desc;
+            if (fbd.ShowDialog() == DialogResult.OK)
+            {
+                return fbd.SelectedPath;
+            }
+            else
+            {
+                return null;
+            }
+        }
         private void browseBtn_Click(object sender, EventArgs e)
         {
             if (extensionComboBox.SelectedItem == null)
@@ -49,15 +64,11 @@ namespace YWML.Src.Forms.LoadForm
                 MessageBox.Show("Please select a game before choosing an installation directory");
                 return;
             }
-            var fbd = new FolderBrowserDialog();
-            fbd.UseDescriptionForTitle = true;
-            fbd.Description = "Select the folder you want to install your mods to";
-            if (fbd.ShowDialog() == DialogResult.OK)
-            {
-                this.modInstallPathTextBox.Text = fbd.SelectedPath;
-                _defaultInstallDirs[_nameToId[extensionComboBox.SelectedItem as string]] = fbd.SelectedPath;
-            }
+            var selFolder = ChooseFolder("Select the folder you want to install your mods to");
+            if (selFolder == null) return;
+            this.modInstallPathTextBox.Text = selFolder;
         }
+
 
         private void addModBtn_Click(object sender, EventArgs e)
         {
@@ -102,7 +113,7 @@ namespace YWML.Src.Forms.LoadForm
 
         private void removeSelectedModBtn_Click(object sender, EventArgs e)
         {
-            modsTreeView.Nodes.Remove(modsTreeView.SelectedNode);
+            if (modsTreeView.SelectedNode != null) modsTreeView.Nodes.Remove(modsTreeView.SelectedNode);
         }
 
         private void extensionComboBox_SelectedIndexChanged(object sender, EventArgs e)
@@ -116,15 +127,51 @@ namespace YWML.Src.Forms.LoadForm
                 modInstallPathTextBox.Text = "";
             }
         }
-
+        private CExtensionLibraryItem GetSelectedExt()
+        {
+            return _lib.InstalledList.Values.ToList().Find(match: e => e.Name == extensionComboBox.SelectedItem);
+        }
         private void installBtn_Click(object sender, EventArgs e)
         {
+            if (modsTreeView.Nodes.Count == 0)
+            {
+                MessageBox.Show("Please add at least one mod to the list to begin patching.");
+                return;
+            }
+            if (extensionComboBox.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a target game.");
+                return;
+            }
+
+            //check if the mod path contains the title ID to warn the user it may be wrong
+            var selectedExtension = _lib.InstalledList.Values.ToList().Find(match: e => e.Name == extensionComboBox.SelectedItem);
+            if (!modInstallPathTextBox.Text.Contains(selectedExtension.TitleId))
+            {
+                DialogResult res = MessageBox.Show(
+                    "Your selected mod installation directory DOES NOT contain your selected game's title ID.\nThis likely means this folder is NOT the correct mod installation directory. \n\nIf you are aware of this and know what you are doing, Continue. Else, Fix it.\n\nWould you like to continue?",
+                    "YWML",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Warning,
+                    MessageBoxDefaultButton.Button2
+                );
+
+                if (res == DialogResult.No)
+                {
+                    return;
+                }
+            }
             var faToLoad = Path.Combine(CGeneralUtils.ExtensionInstallDirectory, _nameToId[extensionComboBox.SelectedItem as string], "patchable.fa");
             var result = CLoader.ModifyFA(modsTreeView, _modNameToPath, faToLoad);
-            var archive = result.Archive;
             var rawFiles = result.RawFiles;
-            var modifiedFA = archive.Save();
+            var modifiedFA = result.Archive.Save();
             var outputFaPath = Path.Combine(modInstallPathTextBox.Text, _lib.InstalledList[_nameToId[extensionComboBox.SelectedItem as string]].FAName);
+            string? dir = Path.GetDirectoryName(outputFaPath);
+
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
             File.WriteAllBytes(outputFaPath, modifiedFA);
             foreach (var file in rawFiles)
             {
@@ -135,23 +182,22 @@ namespace YWML.Src.Forms.LoadForm
                 File.Copy(filePath, outputPath, true);
             }
             MessageBox.Show("Loaded all mods. Enjoy your game!");
-            archive.BaseStream.Close();
+            result.Archive.BaseStream.Close();
         }
 
         private void moveUpSelectedModBtn_Click(object sender, EventArgs e)
         {
-            MoveSelectedNodePosition(modsTreeView.SelectedNode.PrevNode, true);
+            MoveSelectedNodePosition(true);
         }
-        private void MoveSelectedNodePosition(TreeNode nodeToCheck, bool isMoveUp)
+        private void MoveSelectedNodePosition(bool isMoveUp)
         {
             if (modsTreeView.SelectedNode == null) return;
-            if (nodeToCheck == null) return;
 
             TreeNode node = modsTreeView.SelectedNode;
             int index = node.Index;
 
             modsTreeView.Nodes.RemoveAt(index);
-            if(isMoveUp)
+            if (isMoveUp)
             {
                 modsTreeView.Nodes.Insert(index - 1, node);
             }
@@ -163,7 +209,51 @@ namespace YWML.Src.Forms.LoadForm
         }
         private void moveDownSelectedModBtn_Click(object sender, EventArgs e)
         {
-           MoveSelectedNodePosition(modsTreeView.SelectedNode.NextNode, false);
+            MoveSelectedNodePosition(false);
+        }
+
+        private void genModDirBtn_Click(object sender, EventArgs e)
+        {
+            string modInstallDir = string.Empty;
+            if (extensionComboBox.Text == string.Empty)
+            {
+                MessageBox.Show("You must select a target game to generate an installation dir");
+                return;
+            }
+
+            if (platComboBox.Text != "Modded3DS")
+            {
+                modInstallDir = $"C:/Users/{Environment.UserName}/AppData/Roaming/{platComboBox.Text}/load/mods/{GetSelectedExt().TitleId}";
+            }
+            else
+            {
+                MessageBox.Show("Your 3DS microSD drive must be inserted into your computer. Please insert it if you haven't already before proceeding.\n\nClick 'OK' to select your 3DS microSD card's drive when prompted to in the file explorer. (For example: When inserting my microSD card, it showed up as the D:/ drive. So I went to \"This PC\", selected my D:/ drive and pressed \"open\". ");
+                var selFolder = ChooseFolder("Please choose your 3DS microSD card's drive");
+                if (selFolder != null)
+                {
+                    //the last char removal is to remove the backslash at the end of the drive path (D:\)
+                    if (selFolder.EndsWith("\\"))
+                        selFolder = selFolder.Remove(selFolder.Length - 1);
+                    modInstallDir = $"{selFolder}/luma/titles/{GetSelectedExt().TitleId}";
+                }
+                else
+                {
+                    MessageBox.Show("Operation was cancelled.");
+                    return;
+                }
+            }
+            modInstallPathTextBox.Text = modInstallDir+"/romfs";
+        }
+
+        private void LoadForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void modInstallPathTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if(modInstallPathTextBox.Text != null)
+                _defaultInstallDirs[_nameToId[extensionComboBox.SelectedItem as string]] = modInstallPathTextBox.Text;
         }
     }
 }

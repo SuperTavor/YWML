@@ -6,7 +6,7 @@ namespace YWML.Src.Utils.Tinifan.ArchiveL5.Level5.Archive.ARC0
     {
         public struct Header
         {
-            public uint Magic;
+            public UInt32 Magic;
             public int DirectoryEntriesOffset;
             public int DirectoryHashOffset;
             public int FileEntriesOffset;

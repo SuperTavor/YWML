@@ -1,29 +1,34 @@
 ﻿using Newtonsoft.Json;
-using YWML.Src.Utils.GeneralUtils;
+using YWML.Src.ConfigManager;
 using YWML.Src.ExtensionLibrary;
-using YWML.Src.Loader.DataClasses;
-using YWML.Src.Loader;
 using YWML.Src.ExtensionLibrary.DataClasses;
 using YWML.Src.Install;
 using YWML.Src.Install.DataClasses;
+using YWML.Src.Loader;
 using YWML.Src.Loader.Archive;
+using YWML.Src.Loader.DataClasses;
 using YWML.Src.RemoteInstall;
 using YWML.Src.RemoteInstall.DataClasses;
+using YWML.Src.Utils.GeneralUtils;
 
 namespace YWML.Src.Forms.LoadForm
 {
     public partial class LoadForm : Form
     {
         private CExtensionLibrary _lib;
-        private Dictionary<string, SInstallTarget> _installTargets;
+        private Dictionary<string, string> _installDirs;
         private Dictionary<string, string> _nameToId = new();
         private Dictionary<string, string> _modNameToPath = new();
         private SFtpConnectionInfo? _ftpConnectionInfo;
         private readonly IFtpTransport _ftpTransport = new CFtpTransport();
         private readonly List<string> _archiveStagingDirs = new();
+        private Font _installPathNormalFont;
+        private Font _installPathItalicFont;
+        private Color _installPathNormalForeColor;
         private bool _suppressInstallPathUpdate;
         private const string WRONG_STRUCT_MSG = "YWML project configuration exists (ywml.json), but is not structured correctly: ";
         private const string ADD_GAME_ITEM = "Can't find your game/region? Add it from here";
+        private const string REMOTE_DISABLED_MSG = "Disabled for remote install";
 
         public LoadForm()
         {
@@ -32,18 +37,35 @@ namespace YWML.Src.Forms.LoadForm
             _lib = new CExtensionLibrary();
             modsTreeView.ShowNodeToolTips = true;
             this.FormClosing += LoadForm_FormClosing;
-            RefreshInstalledExtensions();
 
-            if (!File.Exists(CGeneralUtils.DefaultInstallationDirectoriesPath))
+            _installPathNormalFont = modInstallPathTextBox.Font;
+            _installPathItalicFont = new Font("Consolas", 8F, FontStyle.Italic);
+            _installPathNormalForeColor = modInstallPathTextBox.ForeColor;
+
+            if (File.Exists(CGeneralUtils.DefaultInstallationDirectoriesPath))
             {
-                _installTargets = new();
+                _installDirs = JsonConvert.DeserializeObject<Dictionary<string, string>>(
+                    File.ReadAllText(CGeneralUtils.DefaultInstallationDirectoriesPath)) ?? new();
             }
             else
             {
-                _installTargets = CInstallTargetStore.Parse(
-                    File.ReadAllText(CGeneralUtils.DefaultInstallationDirectoriesPath));
+                _installDirs = new();
             }
+
+            if (CConfigManager.Cfg.LastUsedInstallMode == SInstallMode.Local)
+            {
+                localModeRadio.Checked = true;
+            }
+            else
+            {
+                remoteModeRadio.Checked = true;
+            }
+
+            RefreshInstalledExtensions();
+            UpdateInstallControlsForMode();
         }
+
+        private bool IsRemoteMode => remoteModeRadio.Checked;
 
         private void RefreshModListButtonsState()
         {
@@ -56,8 +78,12 @@ namespace YWML.Src.Forms.LoadForm
 
         public void LoadForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            var installTargetsJson = CInstallTargetStore.Serialize(_installTargets);
-            File.WriteAllText(CGeneralUtils.DefaultInstallationDirectoriesPath, installTargetsJson);
+            File.WriteAllText(
+                CGeneralUtils.DefaultInstallationDirectoriesPath,
+                JsonConvert.SerializeObject(_installDirs));
+
+            CConfigManager.Cfg.LastUsedInstallMode = IsRemoteMode ? SInstallMode.Remote : SInstallMode.Local;
+            CConfigManager.UpdateConfig();
 
             foreach (var stagingDir in _archiveStagingDirs)
             {
@@ -75,46 +101,70 @@ namespace YWML.Src.Forms.LoadForm
             }
         }
 
+        private void installModeRadio_CheckedChanged(object sender, EventArgs e)
+        {
+            UpdateInstallControlsForMode();
+        }
+
+        private void UpdateInstallControlsForMode()
+        {
+            var isRemote = IsRemoteMode;
+            var selectedExt = GetSelectedExt();
+            var autoDetectDisabledForGame = selectedExt != null && selectedExt.IsDisableAutoInstall;
+
+            browseBtn.Enabled = CInstallModeRules.IsLocalControlEnabled(isRemote);
+            autoInstallDirBtn.Enabled = CInstallModeRules.IsAutoDetectEnabled(isRemote, autoDetectDisabledForGame);
+            modInstallPathTextBox.Enabled = CInstallModeRules.IsLocalControlEnabled(isRemote);
+
+            _suppressInstallPathUpdate = true;
+            if (isRemote)
+            {
+                modInstallPathTextBox.Font = _installPathItalicFont;
+                modInstallPathTextBox.ForeColor = SystemColors.GrayText;
+                modInstallPathTextBox.Text = REMOTE_DISABLED_MSG;
+            }
+            else
+            {
+                modInstallPathTextBox.Font = _installPathNormalFont;
+                modInstallPathTextBox.ForeColor = _installPathNormalForeColor;
+                modInstallPathTextBox.Text = GetSelectedInstallDir();
+            }
+            _suppressInstallPathUpdate = false;
+        }
+
+        private string GetSelectedInstallDir()
+        {
+            if (extensionComboBox.SelectedItem is not string selectedName)
+            {
+                return string.Empty;
+            }
+
+            return _installDirs.TryGetValue(_nameToId[selectedName], out var dir) ? dir : string.Empty;
+        }
+
+        private void SetLocalInstallDir(string path)
+        {
+            if (extensionComboBox.SelectedItem is string selectedName)
+            {
+                _installDirs[_nameToId[selectedName]] = path;
+            }
+
+            _suppressInstallPathUpdate = true;
+            modInstallPathTextBox.Text = path;
+            _suppressInstallPathUpdate = false;
+        }
+
         private void browseBtn_Click(object sender, EventArgs e)
         {
             var selFolder = CGeneralUtils.ChooseFolder("Select the folder you want to install your mods to");
             if (selFolder == null) return;
-            ApplyInstallTarget(new SInstallTarget { Path = selFolder, IsRemote = false });
-        }
-
-        private void remoteInstallBtn_Click(object sender, EventArgs e)
-        {
-            if (extensionComboBox.SelectedItem == null)
-            {
-                MessageBox.Show("Please select a target game first.");
-                return;
-            }
-
-            var selectedExtension = GetSelectedExt();
-            var form = new FtpConnectionForm(selectedExtension.TitleId, _ftpConnectionInfo);
-            if (form.ShowDialog() == DialogResult.OK && form.ConnectionInfo != null && form.RemoteRoot != null)
-            {
-                _ftpConnectionInfo = form.ConnectionInfo;
-                ApplyInstallTarget(new SInstallTarget { Path = form.RemoteRoot, IsRemote = true });
-            }
-        }
-
-        private void ApplyInstallTarget(SInstallTarget target)
-        {
-            _suppressInstallPathUpdate = true;
-            modInstallPathTextBox.Text = target.Path;
-            _suppressInstallPathUpdate = false;
-
-            if (extensionComboBox.SelectedItem is string selectedName)
-            {
-                _installTargets[_nameToId[selectedName]] = target;
-            }
+            SetLocalInstallDir(selFolder);
         }
 
         private void SetInstallingState(bool installing)
         {
             installBtn.Enabled = !installing;
-            installBtn.Text = installing ? "Installing..." : "Install listed mods";
+            installBtn.Text = installing ? "Installing..." : "INSTALL MODS";
         }
 
         private void RefreshInstalledExtensions()
@@ -212,7 +262,6 @@ namespace YWML.Src.Forms.LoadForm
 
         private void extensionComboBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            //foolproof extension library link
             var selectedName = extensionComboBox.SelectedItem as string;
 
             if (selectedName == ADD_GAME_ITEM)
@@ -220,23 +269,11 @@ namespace YWML.Src.Forms.LoadForm
                 extensionComboBox.SelectedIndex = -1;
                 new ExtensionLibraryForm().ShowDialog();
                 RefreshInstalledExtensions();
+                UpdateInstallControlsForMode();
                 return;
             }
 
-            if (selectedName == null)
-            {
-                _suppressInstallPathUpdate = true;
-                modInstallPathTextBox.Text = "";
-                _suppressInstallPathUpdate = false;
-                return;
-            }
-
-            autoInstallDirBtn.Enabled = !GetSelectedExt().IsDisableAutoInstall;
-
-            var selectedId = _nameToId[selectedName];
-            _suppressInstallPathUpdate = true;
-            modInstallPathTextBox.Text = _installTargets.TryGetValue(selectedId, out var target) ? target.Path : "";
-            _suppressInstallPathUpdate = false;
+            UpdateInstallControlsForMode();
         }
 
         private CInstalledExtensionMetadata GetSelectedExt()
@@ -259,39 +296,48 @@ namespace YWML.Src.Forms.LoadForm
 
             var selectedId = _nameToId[extensionComboBox.SelectedItem as string];
             var selectedExtension = _lib.InstalledList[selectedId];
-            var installTarget = _installTargets.TryGetValue(selectedId, out var stored)
-                ? stored
-                : new SInstallTarget { Path = modInstallPathTextBox.Text, IsRemote = false };
-
-            if (!installTarget.Path.Contains(selectedExtension.TitleId))
-            {
-                DialogResult res = MessageBox.Show(
-                    "Your selected mod installation directory DOES NOT contain your selected game's title ID.\nThis likely means this folder is NOT the correct mod installation directory. \n\nIf you are aware of this and know what you are doing, Continue. Else, Fix it.\n\nWould you like to continue?",
-                    "YWML",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Warning,
-                    MessageBoxDefaultButton.Button2
-                );
-
-                if (res == DialogResult.No)
-                {
-                    return;
-                }
-            }
 
             IModInstallTarget target;
-            if (installTarget.IsRemote)
+            if (IsRemoteMode)
             {
                 if (_ftpConnectionInfo == null)
                 {
-                    MessageBox.Show("No remote install connection is configured. Use \"Remote install\" first.");
-                    return;
+                    var connectionForm = new FtpConnectionForm(selectedExtension.TitleId, _ftpConnectionInfo);
+                    if (connectionForm.ShowDialog() != DialogResult.OK || connectionForm.ConnectionInfo == null)
+                    {
+                        return;
+                    }
+                    _ftpConnectionInfo = connectionForm.ConnectionInfo;
                 }
-                target = new CFtpInstallTarget(_ftpTransport, _ftpConnectionInfo.Value, installTarget.Path);
+
+                var remoteRoot = CRemotePath.GetModded3dsRomfsRoot(selectedExtension.TitleId);
+                target = new CFtpInstallTarget(_ftpTransport, _ftpConnectionInfo.Value, remoteRoot);
             }
             else
             {
-                target = new CLocalInstallTarget(installTarget.Path);
+                if (!_installDirs.TryGetValue(selectedId, out var localDir) || string.IsNullOrWhiteSpace(localDir))
+                {
+                    MessageBox.Show("Please select a mod installation directory.");
+                    return;
+                }
+
+                if (!localDir.Contains(selectedExtension.TitleId))
+                {
+                    DialogResult res = MessageBox.Show(
+                        "Your selected mod installation directory DOES NOT contain your selected game's title ID.\nThis likely means this folder is NOT the correct mod installation directory. \n\nIf you are aware of this and know what you are doing, Continue. Else, Fix it.\n\nWould you like to continue?",
+                        "YWML",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning,
+                        MessageBoxDefaultButton.Button2
+                    );
+
+                    if (res == DialogResult.No)
+                    {
+                        return;
+                    }
+                }
+
+                target = new CLocalInstallTarget(localDir);
             }
 
             var faToLoad = Path.Combine(CGeneralUtils.ExtensionInstallDirectory, selectedId, "patchable.fa");
@@ -360,11 +406,10 @@ namespace YWML.Src.Forms.LoadForm
         private void modInstallPathTextBox_TextChanged(object sender, EventArgs e)
         {
             if (_suppressInstallPathUpdate) return;
+            if (IsRemoteMode) return;
             if (extensionComboBox.SelectedItem is not string selectedName) return;
 
-            var selectedId = _nameToId[selectedName];
-            var isRemote = _installTargets.TryGetValue(selectedId, out var existing) && existing.IsRemote;
-            _installTargets[selectedId] = new SInstallTarget { Path = modInstallPathTextBox.Text, IsRemote = isRemote };
+            _installDirs[_nameToId[selectedName]] = modInstallPathTextBox.Text;
         }
 
         private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
@@ -509,7 +554,7 @@ namespace YWML.Src.Forms.LoadForm
 
                 if (f.GeneratedInstallPath != null)
                 {
-                    ApplyInstallTarget(new SInstallTarget { Path = f.GeneratedInstallPath, IsRemote = false });
+                    SetLocalInstallDir(f.GeneratedInstallPath);
                 }
             }
         }

@@ -41,7 +41,6 @@ namespace YWML.Src.ConfigManager
             }
 
             Cfg.FtpHost ??= string.Empty;
-            Cfg.FtpUserName ??= string.Empty;
             Cfg.FtpPort = NormalizeFtpPort(Cfg.FtpPort);
         }
 

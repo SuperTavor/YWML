@@ -1,4 +1,4 @@
-﻿using YWML.Src.ExtensionLibrary.DataClasses;
+﻿using YWML.Src.Install.DataClasses;
 
 namespace YWML.Src.ConfigManager.DataClasses
 {
@@ -10,7 +10,8 @@ namespace YWML.Src.ConfigManager.DataClasses
 
         public string FtpHost { get; set; }
         public int FtpPort { get; set; }
-        public string FtpUserName { get; set; }
+
+        public SInstallMode LastUsedInstallMode { get; set; }
 
         public SConfigStructure()
         {

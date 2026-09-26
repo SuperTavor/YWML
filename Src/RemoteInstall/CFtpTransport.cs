@@ -10,7 +10,7 @@ namespace YWML.Src.RemoteInstall
 
         public async Task ConnectAsync(SFtpConnectionInfo info, CancellationToken cancellationToken = default)
         {
-            _client = new AsyncFtpClient(info.Host, info.UserName, info.Password, info.Port);
+            _client = new AsyncFtpClient(info.Host, "anonymous", "anonymous", info.Port);
             _client.Encoding = Encoding.Latin1;
             await _client.Connect(cancellationToken);
         }

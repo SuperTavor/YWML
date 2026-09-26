@@ -17,12 +17,11 @@ namespace YWML.Src.Forms
             InitializeComponent();
 
             RemoteRoot = CRemotePath.GetModded3dsRomfsRoot(titleId);
-            infoLabel.Text = $"Upload the mod directly to a modded 3DS running an FTP server.\r\nTarget: {RemoteRoot}";
+            infoLabel.Text = $"Upload the mod directly to a modded 3DS running an FTP server (ftpd).\r\nTarget: {RemoteRoot}";
 
             var prefilled = existingConnection ?? GetSavedConnectionInfo();
             hostTextBox.Text = prefilled.Host;
             portNumeric.Value = CConfigManager.NormalizeFtpPort(prefilled.Port);
-            userTextBox.Text = prefilled.UserName;
         }
 
         private static SFtpConnectionInfo GetSavedConnectionInfo()
@@ -31,8 +30,6 @@ namespace YWML.Src.Forms
             {
                 Host = CConfigManager.Cfg.FtpHost ?? string.Empty,
                 Port = CConfigManager.NormalizeFtpPort(CConfigManager.Cfg.FtpPort),
-                UserName = CConfigManager.Cfg.FtpUserName ?? string.Empty,
-                Password = string.Empty,
             };
         }
 
@@ -42,8 +39,6 @@ namespace YWML.Src.Forms
             {
                 Host = hostTextBox.Text.Trim(),
                 Port = (int)portNumeric.Value,
-                UserName = userTextBox.Text.Trim(),
-                Password = passTextBox.Text,
             };
         }
 
@@ -98,7 +93,6 @@ namespace YWML.Src.Forms
             {
                 CConfigManager.Cfg.FtpHost = connection.Host;
                 CConfigManager.Cfg.FtpPort = connection.Port;
-                CConfigManager.Cfg.FtpUserName = connection.UserName;
                 CConfigManager.UpdateConfig();
             }
 

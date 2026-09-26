@@ -1,7 +1,5 @@
-﻿using Newtonsoft.Json;
-using YWML.Src.ConfigManager;
+﻿using YWML.Src.ConfigManager;
 using YWML.Src.ExtensionLibrary;
-using YWML.Src.ExtensionLibrary.DataClasses;
 using YWML.Src.Install;
 using YWML.Src.Install.DataClasses;
 using YWML.Src.Loader;
@@ -15,17 +13,18 @@ namespace YWML.Src.Forms.LoadForm
 {
     public partial class LoadForm : Form
     {
-        private CExtensionLibrary _lib;
-        private Dictionary<string, string> _installDirs;
-        private Dictionary<string, string> _nameToId = new();
-        private Dictionary<string, string> _modNameToPath = new();
-        private SFtpConnectionInfo? _ftpConnectionInfo;
+        private readonly CInstalledGameCatalog _catalog = new();
+        private readonly CModList _modList = new();
+        private readonly CInstallDirectoryStore _installDirectories = new(CGeneralUtils.DefaultInstallationDirectoriesPath);
+        private readonly CArchiveModImporter _archiveImporter = new(CGeneralUtils.ZipModsStagingDir);
+        private readonly CModInstaller _installer = new();
         private readonly IFtpTransport _ftpTransport = new CFtpTransport();
-        private readonly List<string> _archiveStagingDirs = new();
+        private SFtpConnectionInfo? _ftpConnectionInfo;
         private Font _installPathNormalFont;
         private Font _installPathItalicFont;
         private Color _installPathNormalForeColor;
         private bool _suppressInstallPathUpdate;
+        private string? _lastSelectedGameName;
         private const string WRONG_STRUCT_MSG = "YWML project configuration exists (ywml.json), but is not structured correctly: ";
         private const string ADD_GAME_ITEM = "Can't find your game/region? Add it from here";
         private const string REMOTE_DISABLED_MSG = "Disabled for remote install";
@@ -34,7 +33,6 @@ namespace YWML.Src.Forms.LoadForm
         {
             InitializeComponent();
             RefreshModListButtonsState();
-            _lib = new CExtensionLibrary();
             modsTreeView.ShowNodeToolTips = true;
             this.FormClosing += LoadForm_FormClosing;
 
@@ -42,15 +40,7 @@ namespace YWML.Src.Forms.LoadForm
             _installPathItalicFont = new Font("Consolas", 8F, FontStyle.Italic);
             _installPathNormalForeColor = modInstallPathTextBox.ForeColor;
 
-            if (File.Exists(CGeneralUtils.DefaultInstallationDirectoriesPath))
-            {
-                _installDirs = JsonConvert.DeserializeObject<Dictionary<string, string>>(
-                    File.ReadAllText(CGeneralUtils.DefaultInstallationDirectoriesPath)) ?? new();
-            }
-            else
-            {
-                _installDirs = new();
-            }
+            _installDirectories.Load();
 
             if (CConfigManager.Cfg.LastUsedInstallMode == SInstallMode.Local)
             {
@@ -62,6 +52,7 @@ namespace YWML.Src.Forms.LoadForm
             }
 
             RefreshInstalledExtensions();
+            RestoreLastTargetGame();
             UpdateInstallControlsForMode();
         }
 
@@ -78,26 +69,26 @@ namespace YWML.Src.Forms.LoadForm
 
         public void LoadForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            File.WriteAllText(
-                CGeneralUtils.DefaultInstallationDirectoriesPath,
-                JsonConvert.SerializeObject(_installDirs));
+            _installDirectories.Save();
+
+            if (extensionComboBox.SelectedItem is string selectedGame)
+            {
+                CConfigManager.Cfg.LastUsedTargetGame = selectedGame;
+            }
 
             CConfigManager.Cfg.LastUsedInstallMode = IsRemoteMode ? SInstallMode.Remote : SInstallMode.Local;
             CConfigManager.UpdateConfig();
 
-            foreach (var stagingDir in _archiveStagingDirs)
+            _archiveImporter.Cleanup();
+        }
+
+        private void RestoreLastTargetGame()
+        {
+            var lastName = CConfigManager.Cfg.LastUsedTargetGame;
+            if (!string.IsNullOrWhiteSpace(lastName) && extensionComboBox.Items.Contains(lastName))
             {
-                try
-                {
-                    if (Directory.Exists(stagingDir))
-                    {
-                        Directory.Delete(stagingDir, true);
-                    }
-                }
-                catch
-                {
-                    
-                }
+                extensionComboBox.SelectedItem = lastName;
+                _lastSelectedGameName = lastName;
             }
         }
 
@@ -109,7 +100,7 @@ namespace YWML.Src.Forms.LoadForm
         private void UpdateInstallControlsForMode()
         {
             var isRemote = IsRemoteMode;
-            var selectedExt = GetSelectedExt();
+            var selectedExt = _catalog.Get(extensionComboBox.SelectedItem as string);
             var autoDetectDisabledForGame = selectedExt != null && selectedExt.IsDisableAutoInstall;
 
             browseBtn.Enabled = CInstallModeRules.IsLocalControlEnabled(isRemote);
@@ -134,19 +125,16 @@ namespace YWML.Src.Forms.LoadForm
 
         private string GetSelectedInstallDir()
         {
-            if (extensionComboBox.SelectedItem is not string selectedName)
-            {
-                return string.Empty;
-            }
-
-            return _installDirs.TryGetValue(_nameToId[selectedName], out var dir) ? dir : string.Empty;
+            var id = _catalog.GetId(extensionComboBox.SelectedItem as string);
+            return id != null ? _installDirectories.Get(id) ?? string.Empty : string.Empty;
         }
 
         private void SetLocalInstallDir(string path)
         {
-            if (extensionComboBox.SelectedItem is string selectedName)
+            var id = _catalog.GetId(extensionComboBox.SelectedItem as string);
+            if (id != null)
             {
-                _installDirs[_nameToId[selectedName]] = path;
+                _installDirectories.Set(id, path);
             }
 
             _suppressInstallPathUpdate = true;
@@ -171,14 +159,12 @@ namespace YWML.Src.Forms.LoadForm
         {
             var previouslySelected = extensionComboBox.SelectedItem as string;
 
-            _lib.LoadInstalledList();
-            _nameToId.Clear();
+            _catalog.Refresh();
             extensionComboBox.Items.Clear();
 
-            foreach (var key in _lib.InstalledList.Keys)
+            foreach (var name in _catalog.Names)
             {
-                _nameToId[_lib.InstalledList[key].Name] = key;
-                extensionComboBox.Items.Add(_lib.InstalledList[key].Name);
+                extensionComboBox.Items.Add(name);
             }
 
             extensionComboBox.Items.Add(ADD_GAME_ITEM);
@@ -200,12 +186,13 @@ namespace YWML.Src.Forms.LoadForm
 
         private void removeSelectedModBtn_Click(object sender, EventArgs e)
         {
-            if (modsTreeView.SelectedNode != null)
-            {
-                modsTreeView.Nodes.Remove(modsTreeView.SelectedNode);
-                modsTreeView.SelectedNode = null; 
-                RefreshModListButtonsState();
-            }
+            var node = modsTreeView.SelectedNode;
+            if (node == null) return;
+
+            _modList.RemoveAt(node.Index);
+            modsTreeView.Nodes.RemoveAt(node.Index);
+            modsTreeView.SelectedNode = null;
+            RefreshModListButtonsState();
         }
 
         private void extensionComboBox_DrawItem(object sender, DrawItemEventArgs e)
@@ -269,16 +256,22 @@ namespace YWML.Src.Forms.LoadForm
                 extensionComboBox.SelectedIndex = -1;
                 new ExtensionLibraryForm().ShowDialog();
                 RefreshInstalledExtensions();
+
+                if (_lastSelectedGameName != null && extensionComboBox.Items.Contains(_lastSelectedGameName))
+                {
+                    extensionComboBox.SelectedItem = _lastSelectedGameName;
+                }
+
                 UpdateInstallControlsForMode();
                 return;
             }
 
-            UpdateInstallControlsForMode();
-        }
+            if (selectedName != null)
+            {
+                _lastSelectedGameName = selectedName;
+            }
 
-        private CInstalledExtensionMetadata GetSelectedExt()
-        {
-            return _lib.InstalledList.Values.ToList().Find(match: e => e.Name == extensionComboBox.SelectedItem);
+            UpdateInstallControlsForMode();
         }
 
         private async void installBtn_Click(object sender, EventArgs e)
@@ -288,14 +281,14 @@ namespace YWML.Src.Forms.LoadForm
                 MessageBox.Show("Please add at least one mod to the list to begin patching.");
                 return;
             }
-            if (extensionComboBox.SelectedItem == null)
+
+            var selectedId = _catalog.GetId(extensionComboBox.SelectedItem as string);
+            var selectedExtension = _catalog.Get(extensionComboBox.SelectedItem as string);
+            if (selectedId == null || selectedExtension == null)
             {
                 MessageBox.Show("Please select a target game.");
                 return;
             }
-
-            var selectedId = _nameToId[extensionComboBox.SelectedItem as string];
-            var selectedExtension = _lib.InstalledList[selectedId];
 
             IModInstallTarget target;
             if (IsRemoteMode)
@@ -315,7 +308,8 @@ namespace YWML.Src.Forms.LoadForm
             }
             else
             {
-                if (!_installDirs.TryGetValue(selectedId, out var localDir) || string.IsNullOrWhiteSpace(localDir))
+                var localDir = _installDirectories.Get(selectedId);
+                if (string.IsNullOrWhiteSpace(localDir))
                 {
                     MessageBox.Show("Please select a mod installation directory.");
                     return;
@@ -341,16 +335,14 @@ namespace YWML.Src.Forms.LoadForm
             }
 
             var faToLoad = Path.Combine(CGeneralUtils.ExtensionInstallDirectory, selectedId, "patchable.fa");
-            var result = CLoader.ModifyFA(modsTreeView, _modNameToPath, faToLoad);
-            var rawFiles = result.RawFiles;
-            var modifiedFA = result.Archive.Save();
+            var modPaths = _modList.GetPathsLeastToMostImportant();
 
             SetInstallingState(true);
             try
             {
                 var status = new Progress<string>(message => installBtn.Text = message);
                 var percent = new Progress<int>(percentage => installBtn.Text = $"Uploading... {percentage}%");
-                await target.InstallAsync(modifiedFA, selectedExtension.FAName, rawFiles, status, percent);
+                await _installer.InstallAsync(faToLoad, selectedExtension.FAName, modPaths, target, status, percent);
                 MessageBox.Show("Loaded all mods. Enjoy your game!");
             }
             catch (Exception ex)
@@ -360,7 +352,6 @@ namespace YWML.Src.Forms.LoadForm
             finally
             {
                 SetInstallingState(false);
-                result.Archive.BaseStream.Close();
             }
         }
 
@@ -391,6 +382,15 @@ namespace YWML.Src.Forms.LoadForm
                 modsTreeView.Nodes.Remove(node);
                 modsTreeView.Nodes.Insert(isMoveUp ? index - 1 : index + 1, node);
                 modsTreeView.EndUpdate();
+
+                if (isMoveUp)
+                {
+                    _modList.MoveUp(index);
+                }
+                else
+                {
+                    _modList.MoveDown(index);
+                }
             }
 
             modsTreeView.Focus();
@@ -407,9 +407,10 @@ namespace YWML.Src.Forms.LoadForm
         {
             if (_suppressInstallPathUpdate) return;
             if (IsRemoteMode) return;
-            if (extensionComboBox.SelectedItem is not string selectedName) return;
 
-            _installDirs[_nameToId[selectedName]] = modInstallPathTextBox.Text;
+            var id = _catalog.GetId(extensionComboBox.SelectedItem as string);
+            if (id == null) return;
+            _installDirectories.Set(id, modInstallPathTextBox.Text);
         }
 
         private void contextMenuStrip1_Opening(object sender, System.ComponentModel.CancelEventArgs e)
@@ -422,22 +423,23 @@ namespace YWML.Src.Forms.LoadForm
             fbd.UseDescriptionForTitle = true;
             fbd.Description = "Select the mod folder you want to add";
 
-            if (fbd.ShowDialog() == DialogResult.OK)
+            if (fbd.ShowDialog() != DialogResult.OK)
             {
-                var ywmlConfigPath = Path.Combine(fbd.SelectedPath, "ywml.json");
-                if (!File.Exists(ywmlConfigPath))
-                {
-                    MessageBox.Show("Invalid YWML project: make sure you have a project configuration file (ywml.json)");
-                    return;
-                }
+                return;
+            }
 
-                var ywmlProject = TryReadProject(ywmlConfigPath);
-                if (ywmlProject == null)
-                {
-                    return;
-                }
-
-                AddModToTree(ywmlProject, fbd.SelectedPath);
+            try
+            {
+                var project = CYwmlProjectReader.Read(fbd.SelectedPath);
+                AddModToTree(project, fbd.SelectedPath);
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show("Invalid YWML project: make sure you have a project configuration file (ywml.json)");
+            }
+            catch (InvalidDataException ex)
+            {
+                MessageBox.Show(WRONG_STRUCT_MSG + ex.Message);
             }
         }
 
@@ -457,7 +459,6 @@ namespace YWML.Src.Forms.LoadForm
                 archivePath = ofd.FileName;
             }
 
-            var stagingDir = Path.Combine(CGeneralUtils.ZipModsStagingDir, Guid.NewGuid().ToString("N"));
             using var loadingForm = new ArchiveLoadingForm(Path.GetFileName(archivePath));
             loadingForm.Show(this);
             Enabled = false;
@@ -465,32 +466,16 @@ namespace YWML.Src.Forms.LoadForm
             try
             {
                 var progress = new Progress<int>(loadingForm.SetProgress);
-                await Task.Run(() =>
-                {
-                    using var archive = new CYwmlProjectArchive(CArchiveReaderFactory.Open(archivePath));
-                    archive.ExtractTo(stagingDir, progress);
-                });
-
-                _archiveStagingDirs.Add(stagingDir);
-
-                var ywmlConfigPath = Path.Combine(stagingDir, "ywml.json");
-                if (!File.Exists(ywmlConfigPath))
-                {
-                    MessageBox.Show(WRONG_STRUCT_MSG + "ywml.json was not found after extraction");
-                    return;
-                }
-
-                var ywmlProject = TryReadProject(ywmlConfigPath);
-                if (ywmlProject == null)
-                {
-                    return;
-                }
-
-                AddModToTree(ywmlProject, stagingDir);
+                var imported = await Task.Run(() => _archiveImporter.Import(archivePath, progress));
+                AddModToTree(imported.Project, imported.ProjectPath);
             }
             catch (NotSupportedException ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+            catch (FileNotFoundException)
+            {
+                MessageBox.Show(WRONG_STRUCT_MSG + "ywml.json was not found after extraction");
             }
             catch (InvalidDataException ex)
             {
@@ -507,35 +492,13 @@ namespace YWML.Src.Forms.LoadForm
             }
         }
 
-        private CYwmlProject? TryReadProject(string ywmlConfigPath)
+        private void AddModToTree(CYwmlProject project, string projectPath)
         {
-            CYwmlProject? ywmlProject;
-            try
-            {
-                ywmlProject = JsonConvert.DeserializeObject<CYwmlProject>(File.ReadAllText(ywmlConfigPath));
-            }
-            catch
-            {
-                MessageBox.Show(WRONG_STRUCT_MSG + "Wrong json format");
-                return null;
-            }
+            var name = $"{project.Name}";
+            _modList.Add(name, projectPath);
 
-            if (ywmlProject == null)
-            {
-                MessageBox.Show(WRONG_STRUCT_MSG + "Wrong properties");
-                return null;
-            }
-
-            return ywmlProject;
-        }
-
-        private void AddModToTree(CYwmlProject ywmlProject, string projectPath)
-        {
-            string modItem = $"{ywmlProject.Name}";
-            _modNameToPath[modItem] = projectPath;
-
-            TreeNode node = new TreeNode(modItem);
-            node.ToolTipText = $"{ywmlProject.Author}, {ywmlProject.Version}";
+            var node = new TreeNode(name);
+            node.ToolTipText = $"{project.Author}, {project.Version}";
             modsTreeView.Nodes.Add(node);
             modsTreeView.SelectedNode = null;
             RefreshModListButtonsState();
@@ -543,25 +506,30 @@ namespace YWML.Src.Forms.LoadForm
 
         private void autoInstallDirBtn_Click(object sender, EventArgs e)
         {
-            if (extensionComboBox.Text == string.Empty)
+            var selectedExt = _catalog.Get(extensionComboBox.SelectedItem as string);
+            if (selectedExt == null)
             {
                 MessageBox.Show("You must select a target game to generate an installation dir");
+                return;
             }
-            else
-            {
-                var f = new AutoInstallDirForm(GetSelectedExt());
-                f.ShowDialog();
 
-                if (f.GeneratedInstallPath != null)
-                {
-                    SetLocalInstallDir(f.GeneratedInstallPath);
-                }
+            var f = new AutoInstallDirForm(selectedExt);
+            f.ShowDialog();
+
+            if (f.GeneratedInstallPath != null)
+            {
+                SetLocalInstallDir(f.GeneratedInstallPath);
             }
         }
 
         private void modsTreeView_AfterSelect(object sender, TreeViewEventArgs e)
         {
             RefreshModListButtonsState();
+        }
+
+        private void modePanel_Paint(object sender, PaintEventArgs e)
+        {
+
         }
     }
 }

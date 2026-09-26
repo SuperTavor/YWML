@@ -12,6 +12,7 @@ namespace YWML.Src.ConfigManager.DataClasses
         public int FtpPort { get; set; }
 
         public SInstallMode LastUsedInstallMode { get; set; }
+        public string LastUsedTargetGame { get; set; }
 
         public SConfigStructure()
         {

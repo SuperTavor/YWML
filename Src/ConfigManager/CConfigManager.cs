@@ -41,6 +41,7 @@ namespace YWML.Src.ConfigManager
             }
 
             Cfg.FtpHost ??= string.Empty;
+            Cfg.LastUsedTargetGame ??= string.Empty;
             Cfg.FtpPort = NormalizeFtpPort(Cfg.FtpPort);
         }
 

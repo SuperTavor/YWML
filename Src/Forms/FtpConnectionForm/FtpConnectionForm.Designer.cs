@@ -43,7 +43,7 @@ namespace YWML.Src.Forms
             // infoLabel
             // 
             infoLabel.Font = new Font("Consolas", 8F, FontStyle.Italic);
-            infoLabel.Location = new Point(12, 40);
+            infoLabel.Location = new Point(9, 67);
             infoLabel.Name = "infoLabel";
             infoLabel.Size = new Size(420, 40);
             infoLabel.TabIndex = 1;
@@ -52,7 +52,7 @@ namespace YWML.Src.Forms
             // 
             hostLabel.AutoSize = true;
             hostLabel.Font = new Font("Yu Gothic UI Semibold", 9.75F, FontStyle.Bold);
-            hostLabel.Location = new Point(12, 85);
+            hostLabel.Location = new Point(9, 112);
             hostLabel.Name = "hostLabel";
             hostLabel.Size = new Size(62, 17);
             hostLabel.TabIndex = 2;
@@ -62,7 +62,7 @@ namespace YWML.Src.Forms
             // 
             hostTextBox.BorderStyle = BorderStyle.FixedSingle;
             hostTextBox.Font = new Font("Arial Rounded MT Bold", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            hostTextBox.Location = new Point(110, 82);
+            hostTextBox.Location = new Point(107, 109);
             hostTextBox.Name = "hostTextBox";
             hostTextBox.Size = new Size(320, 23);
             hostTextBox.TabIndex = 3;
@@ -71,7 +71,7 @@ namespace YWML.Src.Forms
             // 
             portLabel.AutoSize = true;
             portLabel.Font = new Font("Yu Gothic UI Semibold", 9.75F, FontStyle.Bold);
-            portLabel.Location = new Point(12, 120);
+            portLabel.Location = new Point(9, 147);
             portLabel.Name = "portLabel";
             portLabel.Size = new Size(34, 17);
             portLabel.TabIndex = 4;
@@ -80,7 +80,7 @@ namespace YWML.Src.Forms
             // portNumeric
             // 
             portNumeric.Font = new Font("Arial Rounded MT Bold", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            portNumeric.Location = new Point(110, 117);
+            portNumeric.Location = new Point(107, 144);
             portNumeric.Maximum = new decimal(new int[] { 65535, 0, 0, 0 });
             portNumeric.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             portNumeric.Name = "portNumeric";
@@ -94,17 +94,17 @@ namespace YWML.Src.Forms
             saveInfoCheckBox.Checked = true;
             saveInfoCheckBox.CheckState = CheckState.Checked;
             saveInfoCheckBox.Font = new Font("Yu Gothic UI Semibold", 9F, FontStyle.Bold);
-            saveInfoCheckBox.Location = new Point(110, 150);
+            saveInfoCheckBox.Location = new Point(107, 177);
             saveInfoCheckBox.Name = "saveInfoCheckBox";
-            saveInfoCheckBox.Size = new Size(138, 19);
+            saveInfoCheckBox.Size = new Size(209, 19);
             saveInfoCheckBox.TabIndex = 6;
-            saveInfoCheckBox.Text = "Save connection info";
+            saveInfoCheckBox.Text = "Save connection info for next time\r\n";
             saveInfoCheckBox.UseVisualStyleBackColor = true;
             // 
             // testBtn
             // 
             testBtn.Font = new Font("Yu Gothic UI Semibold", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            testBtn.Location = new Point(110, 182);
+            testBtn.Location = new Point(107, 209);
             testBtn.Name = "testBtn";
             testBtn.Size = new Size(150, 30);
             testBtn.TabIndex = 7;
@@ -115,7 +115,7 @@ namespace YWML.Src.Forms
             // useBtn
             // 
             useBtn.Font = new Font("Yu Gothic UI Semibold", 9.75F, FontStyle.Bold);
-            useBtn.Location = new Point(270, 182);
+            useBtn.Location = new Point(267, 209);
             useBtn.Name = "useBtn";
             useBtn.Size = new Size(160, 30);
             useBtn.TabIndex = 8;
@@ -137,7 +137,7 @@ namespace YWML.Src.Forms
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(450, 230);
+            ClientSize = new Size(450, 259);
             Controls.Add(titleLabel);
             Controls.Add(useBtn);
             Controls.Add(testBtn);

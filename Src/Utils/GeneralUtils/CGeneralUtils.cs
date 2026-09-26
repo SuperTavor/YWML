@@ -2,7 +2,7 @@
 {
     public static class CGeneralUtils
     {
-        public const string APP_VERSION = "1.1.1";
+        public const string APP_VERSION = "1.2.0";
         private static readonly string ExeDir = AppDomain.CurrentDomain.BaseDirectory;
         public static string YWMLDataDir = Environment.ExpandEnvironmentVariables("%APPDATA%/YWML");
         public static string ExtensionInstallDirectory = Path.Combine(YWMLDataDir, "extensions_install");

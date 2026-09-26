@@ -103,19 +103,20 @@
             modePanel.BorderStyle = BorderStyle.FixedSingle;
             modePanel.Controls.Add(localModeRadio);
             modePanel.Controls.Add(remoteModeRadio);
-            modePanel.Location = new Point(125, 142);
+            modePanel.Location = new Point(112, 141);
             modePanel.Name = "modePanel";
-            modePanel.Size = new Size(470, 64);
+            modePanel.Size = new Size(513, 64);
             modePanel.TabIndex = 4;
+            modePanel.Paint += modePanel_Paint;
             // 
             // localModeRadio
             // 
             localModeRadio.Font = new Font("Yu Gothic UI Semibold", 9.75F, FontStyle.Bold);
             localModeRadio.Location = new Point(14, 35);
             localModeRadio.Name = "localModeRadio";
-            localModeRadio.Size = new Size(440, 22);
+            localModeRadio.Size = new Size(498, 22);
             localModeRadio.TabIndex = 1;
-            localModeRadio.Text = "Local install (For emulator/console SD)";
+            localModeRadio.Text = "Local install (Required for emulators; Can optionally be used with real 3ds)";
             localModeRadio.UseVisualStyleBackColor = true;
             localModeRadio.CheckedChanged += installModeRadio_CheckedChanged;
             // 
@@ -124,10 +125,10 @@
             remoteModeRadio.Font = new Font("Yu Gothic UI Semibold", 9.75F, FontStyle.Bold);
             remoteModeRadio.Location = new Point(14, 9);
             remoteModeRadio.Name = "remoteModeRadio";
-            remoteModeRadio.Size = new Size(440, 22);
+            remoteModeRadio.Size = new Size(498, 22);
             remoteModeRadio.TabIndex = 0;
             remoteModeRadio.TabStop = true;
-            remoteModeRadio.Text = "Remote install (Recommended for 3DS)";
+            remoteModeRadio.Text = "Remote install over FTPD (Recommended for real 3DS; DOESNT support emu)";
             remoteModeRadio.UseVisualStyleBackColor = true;
             remoteModeRadio.CheckedChanged += installModeRadio_CheckedChanged;
             // 

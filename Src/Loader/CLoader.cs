@@ -3,24 +3,17 @@ namespace YWML.Src.Loader
 {
     public static class CLoader
     {
-        public static (CARC0Ex Archive, Dictionary<string, string> RawFiles) ModifyFA(TreeView modsTreeView, Dictionary<string, string> modPaths, string faToLoad)
+        public static (CARC0Ex Archive, Dictionary<string, string> RawFiles) ModifyFA(IReadOnlyList<string> modPathsLeastToMostImportant, string faToLoad)
         {
             var fs = new FileStream(faToLoad, FileMode.Open, FileAccess.ReadWrite);
-            CARC0Ex arcEx = new CARC0Ex(fs);
-
-            // get the list of mod paths from least to most important
-            var modPathsFromLeastImportant = modsTreeView.Nodes
-                .Cast<TreeNode>()
-                .Select(node => modPaths[node.Text].Replace("\\", "/"))
-                .Reverse()
-                .ToList();
+            var arcEx = new CARC0Ex(fs);
 
             // store files for patching in the fa 
             var filesToPatch = new Dictionary<string, byte[]>();
             //Keep track of the base directory and the big file path so we can copy shit properly.
             var rawFiles = new Dictionary<string, string>();
 
-            foreach (var modPath in modPathsFromLeastImportant)
+            foreach (var modPath in modPathsLeastToMostImportant)
             {
                 // add all files except those in "include"
                 foreach (var f in Directory.EnumerateFiles(modPath, "*", SearchOption.AllDirectories)

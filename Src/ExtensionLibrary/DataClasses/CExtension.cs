@@ -19,7 +19,10 @@ namespace YWML.Src.ExtensionLibrary.DataClasses
         //Original FA name
         public string OgFAName { get; set;  }
 
-        public async Task UninstallAsync(List<Button> btnsToLock,Label statusLabel,Dictionary<string,CExtensionLibraryItem> installedList)
+        //OPTIONAL: Decides if auto-install should be disabled (for Switch games that use FA) (Fuck you Light)
+        public bool IsDisableAutoInstall { get; set; }
+
+        public async Task UninstallAsync(List<Button> btnsToLock,Label statusLabel,Dictionary<string,CInstalledExtensionMetadata> installedList)
         {
             foreach (var button in btnsToLock)
             {
@@ -34,7 +37,7 @@ namespace YWML.Src.ExtensionLibrary.DataClasses
                 button.Enabled = true;
             }
         }
-        public async Task InstallAsync(List<Button> btnsToLock, Label statusLabel,Label percentageLabel,Dictionary<string, CExtensionLibraryItem> installedList)
+        public async Task InstallAsync(List<Button> btnsToLock, Label statusLabel,Label percentageLabel,Dictionary<string, CInstalledExtensionMetadata> installedList)
         {
             foreach(var button in btnsToLock)
             {
@@ -63,7 +66,8 @@ namespace YWML.Src.ExtensionLibrary.DataClasses
                 {
                    FAName= this.OgFAName,
                    Name = this.Name,
-                   TitleId = this.TitleId
+                   TitleId = this.TitleId,
+                   IsDisableAutoInstall = this.IsDisableAutoInstall
                 };
             }
             

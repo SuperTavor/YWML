@@ -51,15 +51,22 @@ namespace YWML
         private void button1_Click(object sender, EventArgs e)
         {
             var f = SelectFolder("Select your mod folder (should contain an FA file or two");
-            if (f != null) _modFolder = f;
-            modSelectedLbl.Text = new DirectoryInfo(_modFolder).Name + " selected.";
+            if (f != null)
+            {
+                _modFolder = f;
+                modSelectedLbl.Text = new DirectoryInfo(_modFolder).Name + " selected.";
+            }
         }
 
         private void button3_Click(object sender, EventArgs e)
         {
             var f = SelectFolder("Select the game's original RomFS folder (should contain an FA file or two");
-            if (f != null) _romfsFolder = f;
-            ogRomfsLabel.Text = new DirectoryInfo(_romfsFolder).Name + " selected.";
+            if (f != null)
+            {
+                _romfsFolder = f;
+                ogRomfsLabel.Text = new DirectoryInfo(_romfsFolder).Name + " selected.";
+            }
+            
         }
         private void Timer_Tick(object sender, EventArgs e)
         {
@@ -84,12 +91,12 @@ namespace YWML
 
             int result = await Task.Run(() => merger.GetDiffs());
 
-            statusLabel.Text = "Status: Processing results...";
             statusLabel.Refresh();
             switch (result)
             {
                 case 0:
-                    HandleYWMLProjFiles(modpath, merger, proj);
+                    statusLabel.Text = "Status: Processing results...";
+                    await HandleYWMLProjFiles(modpath, merger, proj);
                     break;
                 case 1:
                     stopwatch.Stop();
@@ -101,13 +108,13 @@ namespace YWML
             return 0;
         }
 
-        private void HandleYWMLProjFiles(string modpath, CFAMerger merger, CYwmlProject proj)
+        private async Task HandleYWMLProjFiles(string modpath, CFAMerger merger, CYwmlProject proj)
         {
             //write ywml proj
             var projJson = JsonConvert.SerializeObject(proj);
             File.WriteAllText(Path.Combine(modpath, "ywml.json"), projJson);
             //copy loose folders
-            CopyMovSnd(modpath);
+            await CopyMovSnd(modpath);
             //get all files from all mod FAs
             foreach (var f in merger.ChangedOrAddedFiles)
             {
@@ -123,28 +130,26 @@ namespace YWML
         }
         void CopyDir(string src, string dst)
         {
-            foreach (var dir in Directory.GetDirectories(src, "*", SearchOption.AllDirectories))
-                Directory.CreateDirectory(dir.Replace(src, dst));
-
-            foreach (var file in Directory.GetFiles(src, "*.*", SearchOption.AllDirectories))
+            foreach (var file in Directory.EnumerateFiles(src, "*.*", SearchOption.AllDirectories))
             {
-                var fileDst = file.Replace(src, dst);
-                Directory.CreateDirectory(Path.GetDirectoryName(fileDst));
+                var fileDst = Path.Combine(dst, file.Substring(src.Length + 1));
+                Directory.CreateDirectory(Path.GetDirectoryName(fileDst)!);
                 File.Copy(file, fileDst, true);
             }
-               
-                
         }
-        private void CopyMovSnd(string dst)
+        private async Task CopyMovSnd(string dst)
         {
-            foreach(var folder in Directory.GetDirectories(_modFolder))
+            await Task.Run(() =>
             {
-                string? dirName = new DirectoryInfo(folder).Name;
-                if (dirName == "mov" || dirName == "snd")
+                foreach (var folder in Directory.GetDirectories(_modFolder))
                 {
-                    CopyDir(folder, dst + "/" + dirName);
+                    string? dirName = new DirectoryInfo(folder).Name;
+                    if (dirName == "mov" || dirName == "snd")
+                    {
+                        CopyDir(folder, dst + "/" + dirName);
+                    }
                 }
-            }
+            });
         }
         //migrate
         private async void button2_Click(object sender, EventArgs e)
@@ -152,8 +157,8 @@ namespace YWML
             stopwatch.Reset();
             timeElapsedLabel.Text = "Time elapsed: None";
             //check that fields were filled
-            if (String.IsNullOrEmpty(modNameTextBox.Text) 
-                || String.IsNullOrEmpty(modAuthorTextBox.Text) 
+            if (String.IsNullOrEmpty(modNameTextBox.Text)
+                || String.IsNullOrEmpty(modAuthorTextBox.Text)
                 || String.IsNullOrEmpty(modVersionTextBox.Text)
                 || String.IsNullOrEmpty(_modFolder)
                 || String.IsNullOrEmpty(_romfsFolder))
@@ -167,7 +172,7 @@ namespace YWML
             string modpath = "";
             var fbd = new FolderBrowserDialog();
             fbd.Description = "Choose your output mod folder";
-            if(fbd.ShowDialog() == DialogResult.OK)
+            if (fbd.ShowDialog() == DialogResult.OK)
             {
                 modpath = fbd.SelectedPath;
             }
@@ -189,7 +194,10 @@ namespace YWML
                 modAuthorTextBox.Enabled = true;
                 modVersionTextBox.Enabled = true;
             }
-            else return;
+            else 
+            {
+                this.Close();
+            }
         }
     }
 }

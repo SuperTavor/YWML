@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using Tomlet;
 using YWML.Src.ConfigManager.DataClasses;
+using YWML.Src.RemoteInstall.DataClasses;
 using YWML.Src.Utils.GeneralUtils;
 
 namespace YWML.Src.ConfigManager
@@ -38,6 +39,15 @@ namespace YWML.Src.ConfigManager
                 MessageBox.Show("The IsUpdateFirstBoot variable in the config is corrupted. Please reinstall the app");
                 Environment.Exit(1);
             }
+
+            Cfg.FtpHost ??= string.Empty;
+            Cfg.FtpUserName ??= string.Empty;
+            Cfg.FtpPort = NormalizeFtpPort(Cfg.FtpPort);
+        }
+
+        public static int NormalizeFtpPort(int port)
+        {
+            return port is > 0 and <= 65535 ? port : SFtpConnectionInfo.DEFAULT_PORT;
         }
 
         public static void UpdateConfig()

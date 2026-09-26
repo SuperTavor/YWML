@@ -9,7 +9,7 @@ namespace YWML.Src.ExtensionLibrary
     {
         public CExtensionLibInfo ExtensionInfo = new();
         //string is id
-        public Dictionary<string, CExtensionLibraryItem> InstalledList = new();
+        public Dictionary<string, CInstalledExtensionMetadata> InstalledList = new();
 
         public void LoadInstalledList()
         {
@@ -23,7 +23,7 @@ namespace YWML.Src.ExtensionLibrary
             {
                 try
                 {
-                    InstalledList = JsonConvert.DeserializeObject<Dictionary<string, CExtensionLibraryItem>>(installedListJson)!;
+                    InstalledList = JsonConvert.DeserializeObject<Dictionary<string, CInstalledExtensionMetadata>>(installedListJson)!;
                 }
                 catch
                 {

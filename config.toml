@@ -1,2 +1,5 @@
 ExtensionLibraryURL = "https://pastebin.com/raw/3CfZWnxb"
 IsUpdateFirstBoot = true
+FtpHost = ""
+FtpPort = 5000
+FtpUserName = ""

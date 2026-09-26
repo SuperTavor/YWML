@@ -56,6 +56,8 @@ Now, in your mod loading window, click "Add mod" and select your mod like so:
 
 ![mod](https://i.imgur.com/ca9EuZK.png)
 
+You can also add mods packaged as `.zip` or `.7z` archives: click **Add mod → ...From Archive** and select the archive. YWML unpacks it to a temporary folder for the session and removes it automatically when the window is closed.
+
 Now, click "Install selected mods"! This will install all of the mods in the list.
 
 ![mod](https://i.imgur.com/OoTnOET.png)

@@ -5,6 +5,7 @@
 
 Instead of distributing the entire game assets archive, you can simply publish only the files you edited and let your users install them with YWML's intelligent mod layering system.
 
+**AI disclaimer if someone gaf: Most of YWML has been written fully by human hands, but the 1.2.0 update features some AI assisted code. This is not a vibe coded project. The `AGENTS.md` is provided so contributors can have their agents not absolutely fuck my codebase up.**
 
 ## Features
 

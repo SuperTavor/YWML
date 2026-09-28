@@ -365,3 +365,10 @@ FodyWeavers.xsd
 
 ExtensionLibrary.json
 Tests
+
+# Android signing
+*.keystore
+*.jks
+
+
+build.bat

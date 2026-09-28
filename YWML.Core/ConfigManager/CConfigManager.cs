@@ -22,26 +22,44 @@ namespace YWML.Src.ConfigManager
 
         public static void Initialize()
         {
-            //Deserialize 
-            if (!File.Exists(CGeneralUtils.WritableConfigPath))
-            {
-                Cfg = TomletMain.To<SConfigStructure>(ReadInitialConfigFile());
-            }
-            else Cfg = TomletMain.To<SConfigStructure>(File.ReadAllText(CGeneralUtils.WritableConfigPath));
+            Cfg = LoadOrReset();
 
             if (string.IsNullOrEmpty(Cfg.ExtensionLibraryURL))
             {
                 throw new InvalidDataException("Cannot find the extension library source URL in config.toml. Please reinstall the application or add your own source URL for custom extensions.");
             }
 
-            if (!(Cfg.IsUpdateFirstBoot is bool))
-            {
-                throw new InvalidDataException("The IsUpdateFirstBoot variable in the config is corrupted. Please reinstall the app");
-            }
-
             Cfg.FtpHost ??= string.Empty;
             Cfg.LastUsedTargetGame ??= string.Empty;
             Cfg.FtpPort = NormalizeFtpPort(Cfg.FtpPort);
+        }
+
+        //Loads the saved config, falling back to the defaults if it's missing or unreadable (e.g. written by an
+        //older, incompatible version) so a stale config can never crash startup.
+        private static SConfigStructure LoadOrReset()
+        {
+            if (File.Exists(CGeneralUtils.WritableConfigPath))
+            {
+                try
+                {
+                    return TomletMain.To<SConfigStructure>(File.ReadAllText(CGeneralUtils.WritableConfigPath));
+                }
+                catch
+                {
+                    var fallback = TomletMain.To<SConfigStructure>(ReadInitialConfigFile());
+                    fallback.IsUpdateFirstBoot = false;
+                    SaveConfig(fallback);
+                    return fallback;
+                }
+            }
+
+            return TomletMain.To<SConfigStructure>(ReadInitialConfigFile());
+        }
+
+        private static void SaveConfig(SConfigStructure config)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(CGeneralUtils.WritableConfigPath)!);
+            File.WriteAllText(CGeneralUtils.WritableConfigPath, TomletMain.TomlStringFrom(config));
         }
 
         public static int NormalizeFtpPort(int port)
@@ -51,8 +69,7 @@ namespace YWML.Src.ConfigManager
 
         public static void UpdateConfig()
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(CGeneralUtils.WritableConfigPath));
-            File.WriteAllText(CGeneralUtils.WritableConfigPath, TomletMain.TomlStringFrom(Cfg));
+            SaveConfig(Cfg);
         }
 
     }

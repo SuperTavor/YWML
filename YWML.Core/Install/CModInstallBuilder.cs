@@ -17,8 +17,8 @@ namespace YWML.Src.Install
             foreach (var rawFile in rawFiles)
             {
                 var relativePath = Path.GetRelativePath(rawFile.Value, rawFile.Key);
-                using var destinationStream = destination.OpenWrite(relativePath);
                 using var sourceStream = File.OpenRead(rawFile.Key);
+                using var destinationStream = destination.OpenWrite(relativePath);
                 sourceStream.CopyTo(destinationStream);
             }
         }

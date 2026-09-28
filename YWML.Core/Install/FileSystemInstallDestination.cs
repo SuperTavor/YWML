@@ -18,7 +18,7 @@ namespace YWML.Src.Install
                 Directory.CreateDirectory(directory);
             }
 
-            return new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+            return new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
         }
     }
 }

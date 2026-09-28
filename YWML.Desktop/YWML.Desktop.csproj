@@ -8,6 +8,11 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>YWML</RootNamespace>
     <ApplicationIcon>ywmlLogo.ico</ApplicationIcon>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(RuntimeIdentifier)' == 'win-x64'">
+    <SelfContained>true</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>

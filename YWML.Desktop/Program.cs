@@ -28,6 +28,11 @@ namespace YWML.Src
                 MessageBox.Show(ex.Message);
                 return;
             }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"YWML failed to start:\n\n{ex.Message}");
+                return;
+            }
             
             //New user
             if(!Directory.Exists(CGeneralUtils.YWMLDataDir))

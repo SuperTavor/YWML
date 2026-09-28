@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="YWML.Android.Pages.LoadingPage"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource OffBlack}">
+
+    <Grid>
+        <Border BackgroundColor="{StaticResource Secondary}"
+                Stroke="{StaticResource Gray600}"
+                StrokeThickness="1"
+                Padding="20"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="12" />
+            </Border.StrokeShape>
+            <VerticalStackLayout Spacing="12"
+                                 WidthRequest="280">
+                <Label x:Name="TitleLabel"
+                       FontFamily="monospace"
+                       FontSize="20"
+                       HorizontalOptions="Center" />
+                <Label x:Name="StatusLabel"
+                       FontSize="12"
+                       TextColor="Gray"
+                       HorizontalOptions="Center" />
+                <ActivityIndicator x:Name="Spinner"
+                                   IsRunning="True"
+                                   HorizontalOptions="Center" />
+                <ProgressBar x:Name="LoadingProgress"
+                             IsVisible="False" />
+                <Label x:Name="PercentageLabel"
+                       Text="0%"
+                       FontSize="12"
+                       TextColor="Gray"
+                       HorizontalOptions="Center"
+                       IsVisible="False" />
+            </VerticalStackLayout>
+        </Border>
+    </Grid>
+
+</ContentPage>

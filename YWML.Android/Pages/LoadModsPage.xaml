@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="YWML.Android.Pages.LoadModsPage"
+             Title="Load"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="*,Auto">
+        <ScrollView Grid.Row="0"
+                    x:Name="ContentScroll">
+            <VerticalStackLayout x:Name="ContentStack"
+                                 Padding="16"
+                                 Spacing="12">
+                <Label Text="LOAD"
+                       FontSize="28"
+                       FontFamily="monospace"
+                       HorizontalOptions="Center" />
+                <Border BackgroundColor="{StaticResource Secondary}"
+                        Stroke="{StaticResource Gray600}"
+                        StrokeThickness="1"
+                        Padding="12,2">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="12" />
+                    </Border.StrokeShape>
+                    <Picker x:Name="GamePicker"
+                            Title="Select target game..."
+                            SelectedIndexChanged="OnGameChanged" />
+                </Border>
+                <Label Text="Can't find your game/region? Add it from here"
+                       FontSize="13"
+                       TextColor="{StaticResource Link}"
+                       HorizontalOptions="Start">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnAddGame" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Label Text="Installation Mode" FontAttributes="Bold" />
+                <RadioButton x:Name="RemoteMode"
+                             Content="Remote 3DS install"
+                             GroupName="installMode"
+                             IsChecked="True"
+                             CheckedChanged="OnModeChanged" />
+                <RadioButton x:Name="LocalMode"
+                             Content="Android Emulator install"
+                             GroupName="installMode"
+                             CheckedChanged="OnModeChanged" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <HorizontalStackLayout Grid.Column="0"
+                                           Spacing="8"
+                                           VerticalOptions="Center">
+                        <Label Text="Mods"
+                               FontSize="20"
+                               FontAttributes="Bold" />
+                        <Label x:Name="ModsCountLabel"
+                               FontSize="12"
+                               TextColor="Gray"
+                               VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <Button Grid.Column="1"
+                            x:Name="AddModButton"
+                            Text="+"
+                            FontSize="22"
+                            Style="{StaticResource IconButton}"
+                            Clicked="OnAddMod" />
+                </Grid>
+                <Label x:Name="EmptyHintLabel"
+                       Text="No mods added yet. Tap + to get started."
+                       FontSize="12"
+                       TextColor="Gray" />
+                <VerticalStackLayout x:Name="ModList" Spacing="8" />
+            </VerticalStackLayout>
+        </ScrollView>
+        <VerticalStackLayout Grid.Row="1"
+                             Padding="16,0,16,16"
+                             Spacing="8">
+            <Button x:Name="InstallButton"
+                    Text="INSTALL MODS"
+                    Clicked="OnInstall" />
+        </VerticalStackLayout>
+    </Grid>
+
+</ContentPage>

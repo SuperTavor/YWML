@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="config.toml" />
+    <EmbeddedResource Include="config.toml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentFTP" Version="55.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="Samboy063.Tomlet" Version="6.2.0" />
+    <PackageReference Include="SharpCompress" Version="0.50.4" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="10.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="YWML.Tests" />
+  </ItemGroup>
+
+</Project>

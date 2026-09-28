@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="YWML.Android.Pages.SettingsPage"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16"
+                             Spacing="12">
+            <Label Text="SETTINGS"
+                   FontSize="28"
+                   FontFamily="monospace"
+                   HorizontalOptions="Center" />
+            <Label Text="Emulator User folder" FontAttributes="Bold" />
+            <Label Text="Select the emulator's User folder (find it in the emulator's settings)."
+                   FontSize="12"
+                   TextColor="Gray" />
+            <Label x:Name="UserFolderLabel" LineBreakMode="CharacterWrap" />
+            <Button Text="Choose emulator User folder" Clicked="OnChooseFolder" />
+            <Button Text="Clear" Clicked="OnClearFolder" />
+            <Button Text="Show setup guide" Clicked="OnShowSetup" />
+            <Label Text="FTP (3DS)" FontAttributes="Bold" />
+            <Label Text="Server IP" FontAttributes="Bold" />
+            <Entry x:Name="HostEntry" Placeholder="3DS IP" />
+            <Label Text="Port" FontAttributes="Bold" />
+            <Entry x:Name="PortEntry" Placeholder="Port" Keyboard="Numeric" />
+            <Button Text="Save FTP settings" Clicked="OnSaveFtp" />
+            <Label x:Name="VersionLabel"
+                   FontSize="12"
+                   TextColor="Gray" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

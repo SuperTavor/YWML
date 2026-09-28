@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="YWML.Android.Pages.ExtensionsPage"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16"
+                             Spacing="12">
+            <Label Text="EXTENSIONS"
+                   FontSize="28"
+                   FontFamily="monospace"
+                   HorizontalOptions="Center" />
+            <Label x:Name="StatusLabel"
+                   FontSize="12"
+                   TextColor="Gray" />
+            <VerticalStackLayout x:Name="ExtensionList" Spacing="8" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net10.0-android</TargetFrameworks>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>YWML.Android</RootNamespace>
+    <UseMaui>true</UseMaui>
+    <SingleProject>true</SingleProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <MauiXamlInflator>SourceGen</MauiXamlInflator>
+	  <AndroidUseInterpreter>false</AndroidUseInterpreter>
+    <ApplicationTitle>YWML</ApplicationTitle>
+    <ApplicationId>com.ywml.android</ApplicationId>
+    <ApplicationDisplayVersion>1.2.0</ApplicationDisplayVersion>
+    <ApplicationVersion>1</ApplicationVersion>
+
+    <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">23.0</SupportedOSPlatformVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#141414" />
+    <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#141414" BaseSize="128,128" />
+    <MauiImage Include="Resources\Images\*" />
+    <MauiImage Include="Resources\Images\TutorialAssets\*" />
+    <MauiFont Include="Resources\Fonts\*" />
+    <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\YWML.Core\YWML.Core.csproj" />
+  </ItemGroup>
+
+</Project>

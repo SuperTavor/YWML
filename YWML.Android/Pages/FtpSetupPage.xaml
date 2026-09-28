@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="YWML.Android.Pages.FtpSetupPage"
+             Shell.NavBarIsVisible="False">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="16"
+                             Spacing="12">
+            <Label Text="Remote 3DS install"
+                   FontSize="20"
+                   FontFamily="monospace" />
+            <Label Text="Enter your 3DS IP (ftpd). The port is 5000 by default."
+                   FontSize="12"
+                   TextColor="Gray" />
+            <Label Text="Server IP" FontAttributes="Bold" />
+            <Entry x:Name="HostEntry" Placeholder="3DS IP" />
+            <Label Text="Port" FontAttributes="Bold" />
+            <Entry x:Name="PortEntry" Placeholder="Port" Keyboard="Numeric" />
+            <Button Text="Test connection" Clicked="OnTest" />
+            <Button Text="Use remote install" Clicked="OnUse" />
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

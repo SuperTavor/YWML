@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:YWML.Android.Pages"
+             x:Class="YWML.Android.Pages.OnboardingPage"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <pages:COnboardingTextConverter x:Key="StepText" />
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*,Auto"
+          Padding="24">
+        <Button Grid.Row="0"
+                Text="Skip"
+                Style="{StaticResource SmallButton}"
+                HorizontalOptions="End"
+                Clicked="OnSkip" />
+        <CarouselView Grid.Row="1"
+                      x:Name="Carousel"
+                      IndicatorView="OnboardingIndicator"
+                      Loop="False"
+                      IsBounceEnabled="False"
+                      PositionChanged="OnPositionChanged">
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+                    <VerticalStackLayout Spacing="24"
+                                         VerticalOptions="Center">
+                        <Image Source="{Binding Image}"
+                               IsVisible="{Binding ShowImage}"
+                               Aspect="AspectFit"
+                               HeightRequest="{Binding ImageHeight}" />
+                        <Label Text="{Binding Title}"
+                               FontSize="24"
+                               FontFamily="monospace"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center" />
+                        <Label FormattedText="{Binding ., Converter={StaticResource StepText}}"
+                               FontSize="14"
+                               TextColor="Gray"
+                               HorizontalOptions="Center"
+                               HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
+        <VerticalStackLayout Grid.Row="2"
+                             Spacing="16">
+            <IndicatorView x:Name="OnboardingIndicator"
+                           HorizontalOptions="Center" />
+            <Button x:Name="NextButton"
+                    Text="Next"
+                    Clicked="OnNext" />
+        </VerticalStackLayout>
+    </Grid>
+
+</ContentPage>

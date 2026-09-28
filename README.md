@@ -11,7 +11,7 @@ Instead of distributing the entire game assets archive, you can simply publish o
 - **Windows and Android** — the same mods and extensions, on your PC or your phone.
 - **Extensions** — add support for a specific game from the built-in Extension Library.
 - **Add mods from a folder or an archive** — loose folders, or `.zip` / `.7z` archives that YWML unpacks for you.
-- **Local install** — write straight into an emulator's `User` folder (Citra, Azahar, Azahar+, Mandarine) or onto a 3DS SD card.
+- **Local install** — write straight into an emulator's folder (Citra, Azahar, Azahar+, Mandarine) or onto a 3DS SD card, and optionally specify the install path yourself for more advanced use cases. 
 - **Remote install** — upload the patched archive directly to a modded 3DS over FTP (`ftpd`).
 - **Smart mod layering** — reorder your mods so later ones override earlier ones.
 
@@ -71,9 +71,9 @@ Expand a mod to see its author and version, reorder them with the up/down button
 
 ### 3. Choose where to install
 
-**Local install** writes into an emulator's `User` folder or a 3DS SD card.
-- *Emulator:* select your emulator's `User` folder (e.g. Azahar/Citra). To find it, open the emulator's settings and look for the option that shows/opens the user folder.
-- *3DS SD card:* point YWML at `luma/titles/[your_title_id]/romfs` (get the title ID [here](https://3dsdb.com/)) and make sure game patching is enabled.
+**Local install** writes into an emulator's folder or a 3DS SD card.
+- *Emulator:* On Desktop, YWML can automatically detect the RomFS folder for your game, depending on your emulator. on Android, you need to select your emulator's `User` folder (e.g. Azahar) before the Load process through the onboarding guide or the Settings. To find it, open the emulator's settings and look for the option that shows/opens the user folder.
+- *3DS SD card:* Optionally, if you don't want to use FTP for any reason, you can pop your 3ds microSD into your PC and have YWML automatically detect the correct loading folder for it after selecting the drive.
 
 **Remote install** uploads straight to a modded 3DS running an FTP server (`ftpd`). Enter your 3DS's IP address (port `5000` by default) when prompted.
 

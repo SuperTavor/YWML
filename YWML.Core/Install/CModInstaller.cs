@@ -1,4 +1,5 @@
 using YWML.Src.Loader;
+using YWML.Src.Loader.DataClasses;
 
 namespace YWML.Src.Install
 {
@@ -7,16 +8,16 @@ namespace YWML.Src.Install
         public async Task InstallAsync(
             string patchableFaPath,
             string faName,
-            IReadOnlyList<string> modPathsLeastToMostImportant,
+            IReadOnlyList<(string Path, SExeFsMode ExeFsMode)> modsLeastToMostImportant,
             IModInstallTarget target,
             IProgress<string> status,
             IProgress<int> percent)
         {
-            var result = CLoader.ModifyFA(modPathsLeastToMostImportant, patchableFaPath);
+            var result = CLoader.ModifyFA(modsLeastToMostImportant, patchableFaPath);
             try
             {
                 var modifiedFa = result.Archive.Save();
-                await target.InstallAsync(modifiedFa, faName, result.RawFiles, status, percent);
+                await target.InstallAsync(modifiedFa, faName, result.RawFiles, result.ExeFsFiles, status, percent);
             }
             finally
             {

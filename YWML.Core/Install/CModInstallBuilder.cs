@@ -2,12 +2,7 @@ namespace YWML.Src.Install
 {
     public static class CModInstallBuilder
     {
-        public static void Build(string root, byte[] fa, string faName, Dictionary<string, string> rawFiles)
-        {
-            Build(new FileSystemInstallDestination(root), fa, faName, rawFiles);
-        }
-
-        public static void Build(IInstallDestination destination, byte[] fa, string faName, Dictionary<string, string> rawFiles)
+        public static void Build(IInstallDestination destination, byte[] fa, string faName, Dictionary<string, string> rawFiles, Dictionary<string, string> exeFsFiles)
         {
             using (var faStream = destination.OpenWrite(faName))
             {
@@ -19,6 +14,13 @@ namespace YWML.Src.Install
                 var relativePath = Path.GetRelativePath(rawFile.Value, rawFile.Key);
                 using var sourceStream = File.OpenRead(rawFile.Key);
                 using var destinationStream = destination.OpenWrite(relativePath);
+                sourceStream.CopyTo(destinationStream);
+            }
+
+            foreach (var exeFsFile in exeFsFiles)
+            {
+                using var sourceStream = File.OpenRead(exeFsFile.Value);
+                using var destinationStream = destination.Parent.OpenWrite(exeFsFile.Key);
                 sourceStream.CopyTo(destinationStream);
             }
         }

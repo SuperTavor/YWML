@@ -1,16 +1,52 @@
 using System.Diagnostics;
 using YWML.Src.Forms;
 using YWML.Src.Forms.LoadForm;
+using YWML.Src.Updates;
 using YWML.Src.Utils.GeneralUtils;
 
 namespace YWML
 {
     public partial class MainForm : Form
     {
+        private readonly CUpdateFlow _updateFlow;
+        private bool _updateChecked;
+
         public MainForm()
         {
             InitializeComponent();
             this.verLabel.Text = CGeneralUtils.APP_VERSION;
+
+            _updateFlow = new CUpdateFlow(new CDesktopUpdatePlatform(this));
+            Shown += MainForm_Shown;
+            Activated += MainForm_Activated;
+        }
+
+        private async void MainForm_Shown(object? sender, EventArgs e)
+        {
+            if (_updateChecked)
+            {
+                return;
+            }
+
+            _updateChecked = true;
+            await _updateFlow.CheckAsync();
+            await PresentUpdateIfIdleAsync();
+        }
+
+        private async void MainForm_Activated(object? sender, EventArgs e)
+        {
+            await PresentUpdateIfIdleAsync();
+        }
+
+        private async Task PresentUpdateIfIdleAsync()
+        {
+            //A modal dialog disables the main form; defer until we're back on the home screen.
+            if (!Enabled || !_updateFlow.HasPending)
+            {
+                return;
+            }
+
+            await _updateFlow.PresentPendingAsync();
         }
 
         private void extLibBtn_Click(object sender, EventArgs e)

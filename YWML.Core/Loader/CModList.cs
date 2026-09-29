@@ -4,15 +4,15 @@ namespace YWML.Src.Loader
 {
     public class CModList
     {
-        private readonly List<(CYwmlProject Project, string Path)> _entries = new();
+        private readonly List<(CYwmlProject Project, string Path, SExeFsMode ExeFsMode)> _entries = new();
 
         public int Count => _entries.Count;
 
-        public IReadOnlyList<(CYwmlProject Project, string Path)> Entries => _entries;
+        public IReadOnlyList<(CYwmlProject Project, string Path, SExeFsMode ExeFsMode)> Entries => _entries;
 
-        public void Add(CYwmlProject project, string path)
+        public void Add(CYwmlProject project, string path, SExeFsMode exeFsMode)
         {
-            _entries.Add((project, path));
+            _entries.Add((project, path, exeFsMode));
         }
 
         public void RemoveAt(int index)
@@ -45,9 +45,9 @@ namespace YWML.Src.Loader
             return true;
         }
 
-        public IReadOnlyList<string> GetPathsLeastToMostImportant()
+        public IReadOnlyList<(string Path, SExeFsMode ExeFsMode)> GetModsLeastToMostImportant()
         {
-            return _entries.Select(entry => entry.Path).Reverse().ToList();
+            return _entries.Select(entry => (entry.Path, entry.ExeFsMode)).Reverse().ToList();
         }
     }
 }

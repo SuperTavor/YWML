@@ -20,5 +20,6 @@ namespace YWML.Android.Services
 
         public SFtpConnectionInfo? FtpConnection { get; set; }
         public string? StartupError { get; set; }
+        public bool UpdateChecked { get; set; }
     }
 }

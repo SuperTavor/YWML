@@ -1,4 +1,5 @@
-﻿using YWML.Src.Utils.GeneralUtils;
+﻿using YWML.Src.Net;
+using YWML.Src.Utils.GeneralUtils;
 
 namespace YWML.Src.ExtensionLibrary.DataClasses
 {
@@ -35,7 +36,7 @@ namespace YWML.Src.ExtensionLibrary.DataClasses
             var compressedPath = Path.Combine(CGeneralUtils.TmpDirectory, "compressed.7z");
             Directory.CreateDirectory(CGeneralUtils.TmpDirectory);
             //Network I/O must not run on the UI thread on Android.
-            await Task.Run(() => CExtensionDownloader.DownloadAsync(Link, compressedPath, percent, downloadHandler));
+            await Task.Run(() => CFileDownloader.DownloadAsync(Link, compressedPath, percent, downloadHandler));
 
             status.Report("Unpacking LZMA extension");
             var unpackedFaPath = Path.Combine(Path.Combine(CGeneralUtils.ExtensionInstallDirectory, Id), "patchable.fa");

@@ -6,6 +6,8 @@ namespace YWML.Src.Install
 {
     public class CFtpInstallTarget : IModInstallTarget
     {
+        private const string ROMFS_STAGING_FOLDER = "romfs";
+
         private readonly IFtpTransport _transport;
         private readonly SFtpConnectionInfo _connectionInfo;
         private readonly string _remoteRoot;
@@ -23,6 +25,7 @@ namespace YWML.Src.Install
             byte[] fa,
             string faName,
             Dictionary<string, string> rawFiles,
+            Dictionary<string, string> exeFsFiles,
             IProgress<string> status,
             IProgress<int> percent,
             CancellationToken cancellationToken = default)
@@ -32,15 +35,19 @@ namespace YWML.Src.Install
             try
             {
                 status.Report("Preparing files...");
-                await Task.Run(() => CModInstallBuilder.Build(_stagingRoot, fa, faName, rawFiles), cancellationToken);
+
+                //Stage the mod root so its parent (where ExeFS files go) maps to the remote parent directory.
+                var romFsStaging = Path.Combine(_stagingRoot, ROMFS_STAGING_FOLDER);
+                await Task.Run(() => CModInstallBuilder.Build(new FileSystemInstallDestination(romFsStaging), fa, faName, rawFiles, exeFsFiles), cancellationToken);
 
                 status.Report("Connecting...");
                 await _transport.ConnectAsync(_connectionInfo, cancellationToken);
 
-                await _transport.EnsureDirectoryAsync(_remoteRoot, cancellationToken);
+                var remoteParentRoot = CRemotePath.GetDirectoryName(_remoteRoot) ?? _remoteRoot;
+                await _transport.EnsureDirectoryAsync(remoteParentRoot, cancellationToken);
 
                 status.Report("Uploading...");
-                await UploadStagedTreeAsync(percent, cancellationToken);
+                await UploadStagedTreeAsync(remoteParentRoot, percent, cancellationToken);
             }
             finally
             {
@@ -57,7 +64,7 @@ namespace YWML.Src.Install
             }
         }
 
-        private async Task UploadStagedTreeAsync(IProgress<int> percent, CancellationToken cancellationToken)
+        private async Task UploadStagedTreeAsync(string remoteParentRoot, IProgress<int> percent, CancellationToken cancellationToken)
         {
             var files = Directory.GetFiles(_stagingRoot, "*", SearchOption.AllDirectories);
 
@@ -73,7 +80,7 @@ namespace YWML.Src.Install
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var relativePath = Path.GetRelativePath(_stagingRoot, file);
-                var remotePath = CRemotePath.Combine(_remoteRoot, relativePath);
+                var remotePath = CRemotePath.Combine(remoteParentRoot, relativePath);
 
                 var remoteDirectory = CRemotePath.GetDirectoryName(remotePath);
                 if (!string.IsNullOrEmpty(remoteDirectory))

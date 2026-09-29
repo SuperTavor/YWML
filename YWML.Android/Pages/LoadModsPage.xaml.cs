@@ -4,8 +4,11 @@ using YWML.Android.Services;
 using YWML.Src.ConfigManager;
 using YWML.Src.Install;
 using YWML.Src.Loader.Archive;
+using YWML.Src.Loader.DataClasses;
 using YWML.Src.RemoteInstall;
 using YWML.Src.Utils.GeneralUtils;
+using YWML.Src.Updates;
+using YWML.Src.Warnings;
 
 namespace YWML.Android.Pages
 {
@@ -13,13 +16,17 @@ namespace YWML.Android.Pages
     {
         private readonly CAppState _state = CAppState.Current;
         private readonly CArchiveModImporter _importer = new(CGeneralUtils.ZipModsStagingDir);
+        private readonly CUpdateFlow _updateFlow;
         private bool _compact;
         private bool _densityCheckPending;
+        private bool _isHome;
         private int _expandedModIndex = -1;
 
         public LoadModsPage()
         {
             InitializeComponent();
+
+            _updateFlow = new CUpdateFlow(new CAndroidUpdatePlatform(this));
 
             ContentScroll.SizeChanged += (_, _) => CheckDensity();
             ContentStack.SizeChanged += (_, _) => CheckDensity();
@@ -33,6 +40,8 @@ namespace YWML.Android.Pages
         {
             base.OnAppearing();
 
+            _isHome = true;
+
             if (_state.StartupError != null)
             {
                 var error = _state.StartupError;
@@ -45,6 +54,28 @@ namespace YWML.Android.Pages
             UpdateMode();
 
             _ = EnsureOnboardingAsync();
+            _ = RunUpdateFlowAsync();
+        }
+
+        protected override void OnDisappearing()
+        {
+            _isHome = false;
+            base.OnDisappearing();
+        }
+
+        private async Task RunUpdateFlowAsync()
+        {
+            if (!_state.UpdateChecked)
+            {
+                _state.UpdateChecked = true;
+                await _updateFlow.CheckAsync();
+            }
+
+            //Only prompt once the user is back on the home page.
+            if (_isHome)
+            {
+                await _updateFlow.PresentPendingAsync();
+            }
         }
 
         private void OnGameChanged(object? sender, EventArgs e)
@@ -277,23 +308,43 @@ namespace YWML.Android.Pages
 
                 var loadingPage = new LoadingPage("LOADING ARCHIVE", $"Loading {pick.FileName}...");
                 await Navigation.PushModalAsync(loadingPage, false);
+
+                (string ProjectPath, CYwmlProject Project) imported;
                 try
                 {
                     var progress = new Progress<int>(loadingPage.SetProgress);
-                    var imported = await Task.Run(() => _importer.Import(cachePath, progress));
-                    _state.ModList.Add(imported.Project, imported.ProjectPath);
-                    _compact = false;
-                    RenderMods();
+                    imported = await Task.Run(() => _importer.Import(cachePath, progress));
                 }
                 finally
                 {
                     await Navigation.PopModalAsync(false);
                 }
+
+                var exeFsMode = await ResolveExeFsModeAsync(this, imported.ProjectPath);
+                if (exeFsMode == null)
+                {
+                    return;
+                }
+
+                _state.ModList.Add(imported.Project, imported.ProjectPath, exeFsMode.Value);
+                _compact = false;
+                RenderMods();
             }
             catch (Exception ex)
             {
                 await DisplayAlert("YWML", ex.Message, "OK");
             }
+        }
+
+        private static async Task<SExeFsMode?> ResolveExeFsModeAsync(Page host, string modPath)
+        {
+            var warning = CWarningService.CheckExeFs(modPath);
+            if (warning == null)
+            {
+                return SExeFsMode.ValidOnly;
+            }
+
+            return await ModWarningPage.ShowAsync(host, warning);
         }
 
         private async void OnInstall(object? sender, EventArgs e)
@@ -334,7 +385,7 @@ namespace YWML.Android.Pages
             }
 
             var faToLoad = Path.Combine(CGeneralUtils.ExtensionInstallDirectory, id, "patchable.fa");
-            var modPaths = _state.ModList.GetPathsLeastToMostImportant();
+            var mods = _state.ModList.GetModsLeastToMostImportant();
 
             var loadingPage = new LoadingPage("INSTALLING MODS", "Preparing files...");
             await Navigation.PushModalAsync(loadingPage, false);
@@ -344,7 +395,7 @@ namespace YWML.Android.Pages
             {
                 var status = new Progress<string>(loadingPage.SetStatus);
                 var percent = new Progress<int>(loadingPage.SetProgress);
-                await _state.Installer.InstallAsync(faToLoad, ext.FAName, modPaths, target, status, percent);
+                await _state.Installer.InstallAsync(faToLoad, ext.FAName, mods, target, status, percent);
             }
             catch (Exception ex)
             {

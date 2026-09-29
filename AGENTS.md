@@ -33,7 +33,7 @@ YWML (Yo-kai Watch Mod Loader) is a mod loader for the Yo-kai Watch series on 3D
 - `CGeneralUtils.Initialize(dataDir)` sets the data root; paths are derived properties (no `%APPDATA%` hardcoding).
 - `CConfigManager` throws on failure instead of showing UI.
 - Installation is abstracted via `IInstallDestination` (`FileSystemInstallDestination` on desktop, `SafInstallDestination` on Android).
-- HTTP is testable via the `HttpMessageHandler` seam on `CExtensionDownloader` / `CExtension`.
+- HTTP is testable via the `HttpMessageHandler` seam on `CFileDownloader` / `CExtension` / `CUpdateService`.
 - Extension payloads are **LZMA-Alone**: `[5-byte props][8-byte little-endian uncompressed size][data]`, decompressed with SharpCompress.
 
 ## 3. Build & test
@@ -98,6 +98,7 @@ dotnet test Tests/YWML.Tests.csproj -c Release
 - `CGeneralUtils.APP_VERSION` (currently `1.2.0`) is the single source of truth for the displayed version.
 - Default FTP port is `5000`.
 - Extension library source: `https://pastebin.com/raw/3CfZWnxb`.
+- Auto-updater: `CGeneralUtils.REPO_URL` (`https://github.com/SuperTavor/YWML`, `LatestReleaseApiUrl` derived from it), release assets `WINDOWS_ASSET` / `ANDROID_ASSET`, skip list in `config.toml` (`SkippedUpdateVersions`). Shared flow in `YWML.Src.Updates.CUpdateFlow`; platforms only implement `IUpdatePlatform`.
 
 ## 6. Environment gotchas
 

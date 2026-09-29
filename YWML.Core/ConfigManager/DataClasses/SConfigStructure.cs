@@ -14,6 +14,8 @@ namespace YWML.Src.ConfigManager.DataClasses
         public SInstallMode LastUsedInstallMode { get; set; }
         public string LastUsedTargetGame { get; set; }
 
+        public List<string> SkippedUpdateVersions { get; set; }
+
         public SConfigStructure()
         {
 

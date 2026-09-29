@@ -1,6 +1,6 @@
-namespace YWML.Src.ExtensionLibrary
+namespace YWML.Src.Net
 {
-    internal static class CExtensionDownloader
+    public static class CFileDownloader
     {
         private const int PARALLEL_MIN_BYTES = 8 * 1024 * 1024;
         private const int MAX_CHUNKS = 4;
@@ -40,7 +40,7 @@ namespace YWML.Src.ExtensionLibrary
             var length = new FileInfo(destinationPath).Length;
             if (totalBytes > 0 && length != totalBytes)
             {
-                throw new IOException("The extension download was incomplete.");
+                throw new IOException("The download was incomplete.");
             }
         }
 
@@ -114,7 +114,7 @@ namespace YWML.Src.ExtensionLibrary
 
                     if (remaining != 0)
                     {
-                        throw new IOException("The extension download was incomplete.");
+                        throw new IOException("The download was incomplete.");
                     }
                 });
             }

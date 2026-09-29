@@ -28,6 +28,7 @@ OutputBaseFilename=ywml_win_setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
+CloseApplications=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"

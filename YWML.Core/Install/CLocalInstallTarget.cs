@@ -13,12 +13,13 @@ namespace YWML.Src.Install
             byte[] fa,
             string faName,
             Dictionary<string, string> rawFiles,
+            Dictionary<string, string> exeFsFiles,
             IProgress<string> status,
             IProgress<int> percent,
             CancellationToken cancellationToken = default)
         {
             status.Report("Preparing files...");
-            return Task.Run(() => CModInstallBuilder.Build(_destination, fa, faName, rawFiles), cancellationToken);
+            return Task.Run(() => CModInstallBuilder.Build(_destination, fa, faName, rawFiles, exeFsFiles), cancellationToken);
         }
     }
 }

@@ -19,6 +19,15 @@ namespace YWML.Android.Services
             _baseRelativePath = baseRelativePath;
         }
 
+        public IInstallDestination Parent => new SafInstallDestination(_treeUri, GetParentRelativePath(_baseRelativePath));
+
+        private static string GetParentRelativePath(string baseRelativePath)
+        {
+            var normalized = baseRelativePath.Replace('\\', '/').Trim('/');
+            var lastSlash = normalized.LastIndexOf('/');
+            return lastSlash < 0 ? string.Empty : normalized[..lastSlash];
+        }
+
         public Stream OpenWrite(string relativePath)
         {
             var context = global::Android.App.Application.Context!;

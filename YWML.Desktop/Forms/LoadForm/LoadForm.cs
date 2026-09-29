@@ -8,6 +8,7 @@ using YWML.Src.Loader.DataClasses;
 using YWML.Src.RemoteInstall;
 using YWML.Src.RemoteInstall.DataClasses;
 using YWML.Src.Utils.GeneralUtils;
+using YWML.Src.Warnings;
 
 namespace YWML.Src.Forms.LoadForm
 {
@@ -341,14 +342,14 @@ namespace YWML.Src.Forms.LoadForm
             }
 
             var faToLoad = Path.Combine(CGeneralUtils.ExtensionInstallDirectory, selectedId, "patchable.fa");
-            var modPaths = _modList.GetPathsLeastToMostImportant();
+            var mods = _modList.GetModsLeastToMostImportant();
 
             SetInstallingState(true);
             try
             {
                 var status = new Progress<string>(message => installBtn.Text = message);
                 var percent = new Progress<int>(percentage => installBtn.Text = $"Uploading... {percentage}%");
-                await _installer.InstallAsync(faToLoad, selectedExtension.FAName, modPaths, target, status, percent);
+                await _installer.InstallAsync(faToLoad, selectedExtension.FAName, mods, target, status, percent);
                 MessageBox.Show("Loaded all mods. Enjoy your game!");
             }
             catch (Exception ex)
@@ -436,8 +437,14 @@ namespace YWML.Src.Forms.LoadForm
 
             try
             {
+                var exeFsMode = ResolveExeFsMode(fbd.SelectedPath);
+                if (exeFsMode == null)
+                {
+                    return;
+                }
+
                 var project = CYwmlProjectReader.Read(fbd.SelectedPath);
-                AddModToTree(project, fbd.SelectedPath);
+                AddModToTree(project, fbd.SelectedPath, exeFsMode.Value);
             }
             catch (FileNotFoundException)
             {
@@ -473,7 +480,12 @@ namespace YWML.Src.Forms.LoadForm
             {
                 var progress = new Progress<int>(loadingForm.SetProgress);
                 var imported = await Task.Run(() => _archiveImporter.Import(archivePath, progress));
-                AddModToTree(imported.Project, imported.ProjectPath);
+                var archiveExeFsMode = ResolveExeFsMode(imported.ProjectPath);
+                if (archiveExeFsMode == null)
+                {
+                    return;
+                }
+                AddModToTree(imported.Project, imported.ProjectPath, archiveExeFsMode.Value);
             }
             catch (NotSupportedException ex)
             {
@@ -498,10 +510,20 @@ namespace YWML.Src.Forms.LoadForm
             }
         }
 
-        private void AddModToTree(CYwmlProject project, string projectPath)
+        private SExeFsMode? ResolveExeFsMode(string modPath)
         {
-            _modList.Add(project, projectPath);
+            var warning = CWarningService.CheckExeFs(modPath);
+            if (warning == null)
+            {
+                return SExeFsMode.ValidOnly;
+            }
 
+            return ModWarningForm.ShowChoice(this, warning);
+        }
+
+        private void AddModToTree(CYwmlProject project, string projectPath, SExeFsMode exeFsMode)
+        {
+            _modList.Add(project, projectPath, exeFsMode);
             var node = new TreeNode($"{project.Name}");
             node.ToolTipText = $"{project.Author}, {project.Version}";
             modsTreeView.Nodes.Add(node);

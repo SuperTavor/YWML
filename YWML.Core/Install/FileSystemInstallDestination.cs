@@ -9,6 +9,8 @@ namespace YWML.Src.Install
             _root = root;
         }
 
+        public IInstallDestination Parent => new FileSystemInstallDestination(Path.GetDirectoryName(_root)!);
+
         public Stream OpenWrite(string relativePath)
         {
             var path = Path.Combine(_root, relativePath);
